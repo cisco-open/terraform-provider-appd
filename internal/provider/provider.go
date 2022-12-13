@@ -64,6 +64,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"appdynamicscloud_connection_aws":                 resourceCloudConnectionAWS(),
 			"appdynamicscloud_connection_azure":               resourceCloudConnectionAzure(),
+			"appdynamicscloud_connection_aws_role_attachment": resourceCloudConnectionAWSRoleAttachment(),
 			"appdynamicscloud_connection_configuration_aws":   resourceCloudConnectionConfigurationAWS(),
 			"appdynamicscloud_connection_configuration_azure": resourceCloudConnectionConfigurationAzure(),
 			// TODO: remaining resources

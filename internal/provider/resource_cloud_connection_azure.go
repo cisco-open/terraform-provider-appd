@@ -55,7 +55,8 @@ func detailsSchemaAzure() *schema.Resource {
 				Required:    true,
 			},
 			"subscription_id": {
-				Type:        schema.TypeString,
+				Type: schema.TypeString,
+				// TODO: Add UUID validation
 				Description: "Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.",
 				Required:    true,
 			},
@@ -69,7 +70,7 @@ func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceD
 	connectionRequest := cloudconnectionapi.ConnectionRequest{}
 	connectionRequest.SetType(cloudconnectionapi.ProviderType(cloudconnectionapi.AZURE))
 
-	err := conditionalStateCheck(ctx, d, m)
+	err := checkStateConfiguration(ctx, d, m)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -96,31 +97,8 @@ func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceD
 	}
 
 	resp, httpResp, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
-
-	// TODO: this must be common
 	if err != nil {
-		m, ok := httpRespToMap(httpResp)
-		if !ok {
-			return diag.FromErr(err)
-		}
-
-		title, isPresentTitle := m["title"]
-		detail, isPresentDetail := m["detail"]
-
-		if !isPresentTitle {
-			return diag.FromErr(err)
-		}
-
-		d := diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  title.(string),
-		}
-
-		if isPresentDetail {
-			d.Detail = detail.(string)
-		}
-
-		return diag.Diagnostics{d}
+		return errRespToDiag(err, httpResp)
 	}
 
 	d.SetId(resp.Id)
@@ -133,10 +111,9 @@ func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceDat
 
 	connectionId := d.Id()
 
-	resp, _, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
+	resp, httpResp, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
 	if err != nil {
-		// TODO: httpRespToDiag
-		return diag.FromErr(err)
+		return errRespToDiag(err, httpResp)
 	}
 
 	var clientSecret string = ""
@@ -167,7 +144,12 @@ func resourceCloudConnectionAzureUpdate(ctx context.Context, d *schema.ResourceD
 
 	connectionUpdate := cloudconnectionapi.ConnectionUpdate{}
 
-	err := conditionalStateCheck(ctx, d, m)
+	err := checkNonUpdatableDetails(ctx, d, m)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = checkStateConfiguration(ctx, d, m)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -189,14 +171,17 @@ func resourceCloudConnectionAzureUpdate(ctx context.Context, d *schema.ResourceD
 	}
 
 	if d.HasChange("details") {
-		connectionUpdateDetails := expandCloudConnectionAzureUpdateDetails(d.Get("details"), d)
+		connectionUpdateDetails, err := expandCloudConnectionAzureUpdateDetails(d.Get("details"), d)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
 		connectionUpdate.SetDetails(connectionUpdateDetails)
 	}
 
-	resp, _, err := apiClient.ConnectionsApi.UpdateConnection(myctx, d.Id()).ConnectionUpdate(connectionUpdate).Execute()
+	resp, httpResp, err := apiClient.ConnectionsApi.UpdateConnection(myctx, d.Id()).ConnectionUpdate(connectionUpdate).Execute()
 	if err != nil {
-		// TODO: httpResp to Diag
-		return diag.FromErr(err)
+		return errRespToDiag(err, httpResp)
 	}
 
 	d.SetId(resp.Id)
@@ -219,26 +204,41 @@ func expandCloudConnectionAzureDetails(v interface{}, d *schema.ResourceData) cl
 	return connectionRequestDetails
 }
 
-func expandCloudConnectionAzureUpdateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.ConnectionUpdateDetails {
-	details := v.(*schema.Set).List()[0].(map[string]interface{})
-
-	clientId := details["client_id"].(string)
-	clientSecret := details["client_secret"].(string)
+func expandCloudConnectionAzureUpdateDetails(v interface{}, d *schema.ResourceData) (cloudconnectionapi.ConnectionUpdateDetails, error) {
+	connectionDetails := expandCloudConnectionAzureDetails(v, d).AzureDetails
 
 	connectionUpdateDetails := cloudconnectionapi.ConnectionUpdateDetailsOneOf2{}
-	connectionUpdateDetails.SetClientId(clientId)
-	connectionUpdateDetails.SetClientSecret(clientSecret)
+	connectionUpdateDetails.SetClientId(connectionDetails.ClientId)
+	connectionUpdateDetails.SetClientSecret(connectionDetails.ClientSecret)
 
 	updateDetails := cloudconnectionapi.ConnectionUpdateDetailsOneOf2AsConnectionUpdateDetails(&connectionUpdateDetails)
-	return updateDetails
+	return updateDetails, nil
 }
 
-func conditionalStateCheck(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
-	_, isPresentState := d.GetOk("state")
+func checkStateConfiguration(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+	valueState, isPresentState := d.GetOk("state")
 	_, isPresentConfigurationId := d.GetOk("configuration_id")
 
-	if !isPresentConfigurationId && isPresentState {
+	// TODO: add description
+	if !isPresentConfigurationId && isPresentState && (valueState == "ACTIVE" || valueState == "INACTIVE") {
 		return fmt.Errorf("the configuration ID must be provided to assign a connection state")
+	}
+
+	return nil
+}
+
+func checkNonUpdatableDetails(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+	old, new := d.GetChange("details")
+
+	oldDetails, _ := singleSetToMap(old)
+	newDetails, _ := singleSetToMap(new)
+
+	if oldDetails["tenant_id"] != newDetails["tenant_id"] {
+		return fmt.Errorf("tenant ID cannot be changed once set")
+	}
+
+	if oldDetails["subscription_id"] != newDetails["subscription_id"] {
+		return fmt.Errorf("subscription ID cannot be changed once set")
 	}
 
 	return nil

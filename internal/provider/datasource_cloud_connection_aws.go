@@ -26,5 +26,5 @@ func dataSourceCloudConnectionAWSRead(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId(id)
 
-	return resourceCloudConnectionRead(ctx, d, meta)
+	return resourceCloudConnectionAWSRead(ctx, d, meta)
 }

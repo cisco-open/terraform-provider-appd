@@ -11,6 +11,7 @@ import (
 	client "github.com/aniketk-crest/appdynamicscloud-go-client"
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
 	cloudqueryapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudquery"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -100,7 +101,7 @@ func checkRequiredNotRequired(d *schema.ResourceDiff, type_ string) error {
 		string(cloudconnectionapi.ROLE_DELEGATION): {"access_key_id", "secret_access_key"},
 	}
 
-	details := d.Get("details").(*schema.Set).List()[0].(map[string]interface{})
+	details, _ := singleListToMap(d.Get("details"))
 
 	for _, k := range requiredAttributes[type_] {
 		if details[k] == "" {
@@ -109,7 +110,7 @@ func checkRequiredNotRequired(d *schema.ResourceDiff, type_ string) error {
 	}
 
 	for _, k := range notRequiredAttributes[type_] {
-		if v, ok := details[k]; ok || v != "" {
+		if v := details[k]; v != "" {
 			return fmt.Errorf("%s should not be used with %s", k, type_)
 		}
 	}
@@ -128,11 +129,52 @@ func httpRespToMap(resp *http.Response) (map[string]interface{}, bool) {
 	json.Unmarshal(body, &m)
 
 	return m, true
-
-	return nil, false
 }
 
 func utcTimeToString(t time.Time) string {
 	v, _ := t.UTC().MarshalText()
 	return string(v)
+}
+
+func errRespToDiag(err error, errResp *http.Response) diag.Diagnostics {
+	m, ok := httpRespToMap(errResp)
+	if !ok {
+		return diag.FromErr(err)
+	}
+
+	title, isPresentTitle := m["title"]
+	detail, isPresentDetail := m["detail"]
+
+	if !isPresentTitle {
+		return diag.FromErr(err)
+	}
+
+	d := diag.Diagnostic{
+		Severity: diag.Error,
+		Summary:  title.(string),
+	}
+
+	if isPresentDetail {
+		d.Detail = detail.(string)
+	}
+
+	return diag.Diagnostics{d}
+}
+
+func singleSetToMap(v interface{}) (map[string]interface{}, bool) {
+	schemaSet := v.(*schema.Set).List()
+
+	if len(schemaSet) > 0 {
+		return schemaSet[0].(map[string]interface{}), true
+	}
+
+	return nil, false
+}
+
+func singleListToMap(v interface{}) (map[string]interface{}, bool) {
+	if len(v.([]interface{})) == 0 {
+		return nil, false
+	}
+
+	return v.([]interface{})[0].(map[string]interface{}), true
 }
