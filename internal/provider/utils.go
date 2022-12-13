@@ -24,6 +24,44 @@ func initializeCloudConnectionClient(m interface{}) (context.Context, *client.Co
 	return myctx, configuration, apiClient
 }
 
+func resourceSchemaToDataSourceSchema(resourceSchema map[string]*schema.Schema) map[string]*schema.Schema {
+	dataSourceSchema := make(map[string]*schema.Schema, len(resourceSchema))
+
+	for k, attributeSchema := range resourceSchema {
+		dataSourceAttributeSchema := &schema.Schema{
+			Type:        attributeSchema.Type,
+			Description: attributeSchema.Description,
+			Computed:    true,
+		}
+
+		switch attributeSchema.Type {
+		case schema.TypeSet:
+		case schema.TypeList:
+			if elem, ok := attributeSchema.Elem.(*schema.Resource); ok {
+				dataSourceAttributeSchema.Elem = &schema.Resource{
+					Schema: resourceSchemaToDataSourceSchema(elem.Schema),
+				}
+			} else {
+				dataSourceAttributeSchema.Elem = attributeSchema.Elem
+			}
+		}
+
+		dataSourceSchema[k] = dataSourceAttributeSchema
+	}
+
+	return dataSourceSchema
+}
+
+// func addRequiredFieldsToSchema(schema map[string]*schema.Schema, key string) {
+// 	schema[key].Computed = false
+// 	schema[key].Required = true
+// }
+
+// func addOptionalFieldsToSchema(schema map[string]*schema.Schema, key string) {
+// 	schema[key].Computed = false
+// 	schema[key].Optional = true
+// }
+
 func appendSchema(a, b map[string]*schema.Schema) map[string]*schema.Schema {
 	c := map[string]*schema.Schema{}
 
