@@ -53,7 +53,7 @@ func flattenCloudConnectionConfigurationCommons(resp *cloudconnectionapi.Configu
 	d.Set("updated_at", utcTimeToString(resp.GetUpdatedAt()))
 }
 
-func flattenCloudConnectionConfigurationCommonsDetails(resp *cloudconnectionapi.ConfigurationDetail, d *schema.ResourceData,connectionType string) {
+func flattenCloudConnectionConfigurationCommonsDetails(resp *cloudconnectionapi.ConfigurationDetail, d *schema.ResourceData, connectionType string) {
 	detailsMap := make(map[string]interface{})
 
 	var servicesList []interface{}
@@ -132,7 +132,7 @@ func flattenCloudConnectionConfigurationCommonsDetails(resp *cloudconnectionapi.
 
 	detailsMap["regions"] = resp.GetDetails().Regions
 	detailsMap["tag_filter"] = *resp.GetDetails().TagFilter
-	if strings.Contains(connectionType,"azure"){
+	if strings.Contains(connectionType, "azure") {
 		detailsMap["resource_groups"] = toSliceInterface(resp.GetDetails().ResourceGroups)
 	}
 
@@ -155,7 +155,7 @@ func expandCloudConnectionConfigurationDetailsPolling(v interface{}, d *schema.R
 		unit = scheduleData["unit"].(string)
 		return *cloudconnectionapi.NewScheduleInterval(interval, unit), true
 	} else {
-		return *&cloudconnectionapi.ScheduleInterval{}, false
+		return cloudconnectionapi.ScheduleInterval{}, false
 	}
 
 }
@@ -183,4 +183,3 @@ func expandCloudConnectionConfigurationDetailsImportTags(v interface{}, d *schem
 	}
 
 }
-
