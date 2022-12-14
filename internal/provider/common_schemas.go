@@ -41,11 +41,11 @@ func cloudConnectionSchema() map[string]*schema.Schema {
 func cloudConnectionSchemaExtras() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"state": {
-			Type:         schema.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{"ACTIVE", "INACTIVE"}, true),
-			Description:  "Connection state. This can only be used if configuration_id is specified. Possible values: [\"ACTIVE\", \"INACTIVE\"]",
-			Optional:     true,
-			Computed:     true,
+			Type:             schema.TypeString,
+			ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"ACTIVE", "INACTIVE"}, true)),
+			Description:      "Connection state. This can only be used if configuration_id is specified. Possible values: [\"ACTIVE\", \"INACTIVE\"]",
+			Optional:         true,
+			Computed:         true,
 		},
 		"state_message": {
 			Type:        schema.TypeString,
@@ -53,9 +53,9 @@ func cloudConnectionSchemaExtras() map[string]*schema.Schema {
 			Computed:    true,
 		},
 		"configuration_id": {
-			Type:         schema.TypeString,
-			ValidateFunc: validation.IsUUID,
-			Optional:     true,
+			Type:             schema.TypeString,
+			ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+			Optional:         true,
 		},
 	}
 }
