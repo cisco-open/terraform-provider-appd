@@ -33,10 +33,10 @@ func resourceCloudConnectionAzure() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"client_id": {
-							Type:         schema.TypeString,
-							ValidateFunc: validation.IsUUID,
-							Description:  "Client IDs, also known as Application IDs, are long-term credentials for an Azure user, or account root user. The Client ID is one of three properties needed to authenticate to Azure, the other two being Client Secret and Tenant (Directory) ID",
-							Required:     true,
+							Type:             schema.TypeString,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+							Description:      "Client IDs, also known as Application IDs, are long-term credentials for an Azure user, or account root user. The Client ID is one of three properties needed to authenticate to Azure, the other two being Client Secret and Tenant (Directory) ID",
+							Required:         true,
 						},
 						"client_secret": {
 							Type:        schema.TypeString,
@@ -45,18 +45,18 @@ func resourceCloudConnectionAzure() *schema.Resource {
 							Required:    true,
 						},
 						"tenant_id": {
-							Type:         schema.TypeString,
-							ValidateFunc: validation.IsUUID,
-							Description:  "The Azure AD Tenant (Directory) IDis one of three properties needed to authenticate to Azure. The other two are Client Secret and Client ID (Application ID).",
-							Required:     true,
-							ForceNew:     true,
+							Type:             schema.TypeString,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+							Description:      "The Azure AD Tenant (Directory) IDis one of three properties needed to authenticate to Azure. The other two are Client Secret and Client ID (Application ID).",
+							Required:         true,
+							ForceNew:         true,
 						},
 						"subscription_id": {
-							Type:         schema.TypeString,
-							ValidateFunc: validation.IsUUID,
-							Description:  "Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.",
-							Required:     true,
-							ForceNew:     true,
+							Type:             schema.TypeString,
+							ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+							Description:      "Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.",
+							Required:         true,
+							ForceNew:         true,
 						},
 					},
 				},

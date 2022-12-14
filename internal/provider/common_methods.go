@@ -12,7 +12,7 @@ func resourceCloudConnectionDelete(ctx context.Context, d *schema.ResourceData, 
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
 	connectionId := d.Id()
-	_, httpResp, err := apiClient.ConnectionsApi.DeleteConnection(myctx, connectionId).Execute()
+	httpResp, err := apiClient.ConnectionsApi.DeleteConnection(myctx, connectionId).Execute()
 
 	if err != nil {
 		return errRespToDiag(err, httpResp)
