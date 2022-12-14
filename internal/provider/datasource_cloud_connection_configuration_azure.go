@@ -5,14 +5,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceCloudConnectionConfigurationAzure() *schema.Resource {
 	dsSchema := resourceSchemaToDataSourceSchema(resourceCloudConnectionConfigurationAzure().Schema)
 
 	dsSchema["configuration_id"] = &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
+		Type:             schema.TypeString,
+		ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+		Required:         true,
 	}
 
 	return &schema.Resource{

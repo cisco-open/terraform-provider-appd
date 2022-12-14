@@ -37,10 +37,10 @@ func resourceCloudConnectionConfigurationDelete(ctx context.Context, d *schema.R
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
 	configurationId := d.Id()
-	_, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, configurationId).Execute()
+	httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, configurationId).Execute()
 
 	if err != nil {
-		return diag.FromErr(err)
+		return errRespToDiag(err, httpResp)
 	}
 
 	return nil
