@@ -1,9 +1,14 @@
 package provider
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+const serviceEmptyErrorMsg = "At Least one services is required while updating, services cannot be updated as empty."
 
 // The following methods will be used outside of this file
 func getCommonCloudConnectionSchema() map[string]*schema.Schema {
@@ -88,10 +93,11 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 	}
 
 	detailsSchema["services"] = &schema.Schema{
-		Type:        schema.TypeList,
+		Type:        schema.TypeSet,
 		Description: "services for which we will fetch metrics",
 		Optional:    true,
 		Computed:    true,
+		Set:         calculateHashStringWithPolling,
 		Elem: &schema.Resource{
 			Schema: servicesSchema,
 		},
@@ -118,6 +124,11 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 		},
 	}
 
+	rootSchema["details_service_default"] = &schema.Schema{
+		Type:        schema.TypeBool,
+		Description: "Whether default services are present in details",
+		Computed:    true,
+	}
 	return rootSchema
 }
 
@@ -150,29 +161,11 @@ func cloudConnectionConfigurationDetails() map[string]*schema.Schema {
 		},
 
 		"import_tags": {
-			Type:        schema.TypeList,
-			Description: "Configuration for importing tags of resources that are being monitored",
-			Optional:    true,
-			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				detailsOld, _ := d.GetChange("details")
-				if len(detailsOld.([]interface{})) > 0 {
-					detailsMap := detailsOld.([]interface{})[0].(map[string]interface{})
-					importTags := detailsMap["import_tags"].([]interface{})
-
-					isImportTagsPresent := len(importTags) > 0
-
-					previousWasEmpty := false
-					if isImportTagsPresent && len(importTags[0].(map[string]interface{})["excluded_keys"].([]interface{})) == 0 {
-						previousWasEmpty = true
-					}
-
-					if k == "details.0.import_tags.#" && oldValue == "1" && newValue == "0" && previousWasEmpty {
-						return true
-					}
-				}
-				return false
-			},
-			MaxItems: 1,
+			Type:             schema.TypeList,
+			Description:      "Configuration for importing tags of resources that are being monitored",
+			Optional:         true,
+			DiffSuppressFunc: importTagsSuppressFunc,
+			MaxItems:         1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
@@ -204,4 +197,63 @@ func cloudConnectionConfigurationDetails() map[string]*schema.Schema {
 
 func cloudConnectionConfigurationDetailsServices() map[string]*schema.Schema {
 	return cloudConnectionConfigurationDetails()
+}
+
+func calculateHashStringWithPolling(val interface{}) int {
+	if val == nil {
+		return 0
+	}
+	var hash int = 0
+	v := val.(map[string]any)
+	name := v["name"]
+	hash += schema.HashString(name)
+	if polling, ok := singleListToMap(v["polling"]); ok {
+		interval := polling["interval"].(int)
+		hash += schema.HashString(fmt.Sprint(interval))
+	} else {
+		hash += schema.HashString("5")
+	}
+	if importTags, ok := singleListToMap(v["import_tags"]); ok {
+		enabled := importTags["enabled"]
+		excludedKeys := importTags["excluded_keys"]
+		hash += schema.HashString(fmt.Sprint(enabled)) + schema.HashString(fmt.Sprint(excludedKeys))
+	}
+	if v["tag_filter"].(string) != "" {
+		hash += schema.HashString(v["tag_filter"])
+	}
+
+	return hash
+}
+
+func importTagsSuppressFunc(k, oldValue, newValue string, d *schema.ResourceData) bool {
+	detailsOld, _ := d.GetChange("details")
+	if len(detailsOld.([]interface{})) > 0 {
+		detailsMap := detailsOld.([]interface{})[0].(map[string]interface{})
+		importTags := detailsMap["import_tags"].([]interface{})
+
+		isImportTagsPresent := len(importTags) > 0
+
+		previousWasEmpty := false
+		if isImportTagsPresent && len(importTags[0].(map[string]interface{})["excluded_keys"].([]interface{})) == 0 {
+			previousWasEmpty = true
+		}
+
+		if k == "details.0.import_tags.#" && oldValue == "1" && newValue == "0" && previousWasEmpty {
+			return true
+		}
+	}
+	return false
+}
+func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface{}) error {
+	len := rd.GetRawConfig().GetAttr("details").AsValueSlice()[0].GetAttr("services").AsValueSet().Length()
+
+	val, exist := rd.GetOkExists("details_service_default")
+	if !exist && len == 0 {
+		rd.SetNew("details_service_default", true)
+	} else if exist && len > 0 {
+		rd.SetNew("details_service_default", false)
+	} else if len == 0 && exist == true && val == false {
+		return fmt.Errorf(serviceEmptyErrorMsg)
+	}
+	return nil
 }

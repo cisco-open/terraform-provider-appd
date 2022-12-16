@@ -3,9 +3,10 @@ package provider
 import (
 	"context"
 
-	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
+	cloudConnectionApi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -20,31 +21,18 @@ func resourceCloudConnectionConfigurationAzure() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 
+		CustomizeDiff: customdiff.All(serviceAtLeastOne),
 		SchemaVersion: 1,
 
 		Schema: getCloudConnectionConfigurationAzureSchema(),
 	}
 }
-func resourceCloudConnectionConfigurationAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
-	configurationId := d.Id()
-
-	resp, _, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, configurationId).Execute()
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	flattenCloudConnectionConfigurationCommons(resp, d)
-	flattenCloudConnectionConfigurationCommonsDetails(resp, d, "azure")
-
-	return nil
-}
 func resourceCloudConnectionConfigurationAzureCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	myctx, _, apiClient := initializeCloudConnectionClient(m)
+	myCtx, _, apiClient := initializeCloudConnectionClient(m)
 
-	azureConfiguration := cloudconnectionapi.AzureConfiguration{}
-	azureConfiguration.BaseEntity.BaseEntityAllOf.SetType(cloudconnectionapi.ProviderType(cloudconnectionapi.AZURE))
+	azureConfiguration := cloudConnectionApi.AzureConfiguration{}
+	azureConfiguration.BaseEntity.BaseEntityAllOf.SetType(cloudConnectionApi.ProviderType(cloudConnectionApi.AZURE))
 
 	if v, ok := d.GetOk("display_name"); ok {
 		azureConfiguration.BaseEntity.SetDisplayName(v.(string))
@@ -58,14 +46,15 @@ func resourceCloudConnectionConfigurationAzureCreate(ctx context.Context, d *sch
 		azureConfigurationDetails := expandCloudConnectionConfigurationAzureCreateDetails(v, d)
 		azureConfiguration.SetDetails(azureConfigurationDetails)
 	} else {
-		azureConfiguration.SetDetails(cloudconnectionapi.AzureConfigurationDetails{})
+		//Create Default Details with default services.
+		azureConfiguration.SetDetails(cloudConnectionApi.AzureConfigurationDetails{})
 	}
 
-	configuration := cloudconnectionapi.AzureConfigurationAsConfiguration(&azureConfiguration)
+	configuration := cloudConnectionApi.AzureConfigurationAsConfiguration(&azureConfiguration)
 
-	resp, _, err := apiClient.ConfigurationsApi.CreateConfiguration(myctx).Configuration(configuration).Execute()
+	resp, httpResp, err := apiClient.ConfigurationsApi.CreateConfiguration(myCtx).Configuration(configuration).Execute()
 	if err != nil {
-		return diag.FromErr(err)
+		return errRespToDiag(err, httpResp)
 	}
 
 	d.SetId(resp.Id)
@@ -73,64 +62,31 @@ func resourceCloudConnectionConfigurationAzureCreate(ctx context.Context, d *sch
 	return resourceCloudConnectionConfigurationAzureRead(ctx, d, m)
 }
 
-func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.AzureConfigurationDetails {
-	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
+func resourceCloudConnectionConfigurationAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	myCtx, _, apiClient := initializeCloudConnectionClient(m)
 
-	details,_:=singleListToMap(v)
-	regions := details["regions"].([]interface{})
-	tagFilter := details["tag_filter"].(string)
-	resourceGroups := details["resource_groups"].([]interface{})
+	configurationId := d.Id()
 
-	services := details["services"].([]interface{})
-	servicesList := make([]map[string]interface{}, 0, len(services))
-	for _, v := range services {
-		service := v.(map[string]interface{})
-		serviceMap := make(map[string]interface{})
-		serviceMap["name"] = service["name"]
-		if service["tag_filter"].(string) != "" {
-			serviceMap["tagFilter"] = service["tag_filter"]
+	resp, httpResp, err := apiClient.ConfigurationsApi.GetConfiguration(myCtx, configurationId).Execute()
+	if err != nil {
+		if httpResp.StatusCode == 404 {
+			d.SetId("")
+			return nil
 		}
-		if polling,ok:=singleListToMap(service["polling"]);ok{
-			serviceMap["polling"] = polling
-		}
-	
-		if importTags,ok:=singleListToMap(service["import_tags"]);ok{
-			tags := importTags
-			tags["excludedKeys"] = tags["excluded_keys"]
-			delete(tags, "excluded_keys")
-			serviceMap["importTags"] = tags
-		}
-	
-		servicesList = append(servicesList, serviceMap)
+		return errRespToDiag(err, httpResp)
 	}
 
-	if len(regions) > 0 {
-		azureConfigurationDetails.SetRegions(toSliceString(regions))
-	}
-	if polling, ok := expandCloudConnectionConfigurationDetailsPolling(details, d); ok {
-		azureConfigurationDetails.SetPolling(polling)
-	}
-	if importTags, ok := expandCloudConnectionConfigurationDetailsImportTags(details, d); ok {
-		azureConfigurationDetails.SetImportTags(importTags)
-	}
-	if tagFilter != "" {
-		azureConfigurationDetails.SetTagFilter(tagFilter)
-	}
-	if len(servicesList) > 0 {
-		azureConfigurationDetails.SetServices(servicesList)
-	}
-	if len(resourceGroups) > 0 {
-		azureConfigurationDetails.SetResourceGroups(toSliceString(resourceGroups))
-	}
+	flattenCloudConnectionConfigurationCommons(resp, d)
+	flattenCloudConnectionConfigurationCommonsDetails(resp, d, "azure")
 
-	return azureConfigurationDetails
+	return nil
 }
 
 func resourceCloudConnectionConfigurationAzureUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	myCtx, _, apiClient := initializeCloudConnectionClient(m)
 
-	myctx, _, apiClient := initializeCloudConnectionClient(m)
+	azureConfigurationUpdate := cloudConnectionApi.ConfigurationUpdate{}
 
-	azureConfigurationUpdate := cloudconnectionapi.ConfigurationUpdate{}
 	if v, ok := d.GetOk("display_name"); ok {
 		azureConfigurationUpdate.SetDisplayName(v.(string))
 	}
@@ -138,29 +94,91 @@ func resourceCloudConnectionConfigurationAzureUpdate(ctx context.Context, d *sch
 	if v, ok := d.GetOk("description"); ok {
 		azureConfigurationUpdate.SetDescription(v.(string))
 	}
+
 	if v, ok := d.GetOk("details"); ok {
-		azureConfigurationUpdateDetails := expandCloudConnectionConfigurationAzureUpdateDetails(v, d)
+		azureConfigurationUpdateDetails:= expandCloudConnectionConfigurationAzureUpdateDetails(v, d)
 		azureConfigurationUpdate.SetDetails(azureConfigurationUpdateDetails)
 	}
-	resp, _, err := apiClient.ConfigurationsApi.UpdateConfiguration(myctx, d.Id()).ConfigurationUpdate(azureConfigurationUpdate).Execute()
+
+	resp, httpResp, err := apiClient.ConfigurationsApi.UpdateConfiguration(myCtx, d.Id()).ConfigurationUpdate(azureConfigurationUpdate).Execute()
 	if err != nil {
-		return diag.FromErr(err)
+		return errRespToDiag(err, httpResp)
 	}
 
 	d.SetId(resp.Id)
+
 	return resourceCloudConnectionConfigurationAzureRead(ctx, d, m)
 }
 
-func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.ConfigurationUpdateDetails {
-	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
+func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *schema.ResourceData) cloudConnectionApi.AzureConfigurationDetails {
+	azureConfigurationDetails := cloudConnectionApi.AzureConfigurationDetails{}
 
-	details,_:=singleListToMap(v)
-
+	details, _ := singleListToMap(v)
 	regions := details["regions"].([]interface{})
 	tagFilter := details["tag_filter"].(string)
 	resourceGroups := details["resource_groups"].([]interface{})
 
-	services := details["services"].([]interface{})
+	services := details["services"].(*schema.Set).List()
+	servicesList := make([]map[string]interface{}, 0, len(services))
+	for _, v := range services {
+		service := v.(map[string]interface{})
+		serviceMap := make(map[string]interface{})
+		serviceMap["name"] = service["name"]
+
+		if service["tag_filter"].(string) != "" {
+			serviceMap["tagFilter"] = service["tag_filter"]
+		}
+
+		if polling, ok := singleListToMap(service["polling"]); ok {
+			serviceMap["polling"] = polling
+		}
+
+		if importTags, ok := singleListToMap(service["import_tags"]); ok {
+			tags := importTags
+			tags["excludedKeys"] = tags["excluded_keys"]
+			delete(tags, "excluded_keys")
+			serviceMap["importTags"] = tags
+		}
+
+		servicesList = append(servicesList, serviceMap)
+	}
+
+	if len(regions) > 0 {
+		azureConfigurationDetails.SetRegions(toSliceString(regions))
+	}
+
+	if len(resourceGroups) > 0 {
+		azureConfigurationDetails.SetResourceGroups(toSliceString(resourceGroups))
+	}
+
+	if len(servicesList) > 0 {
+		azureConfigurationDetails.SetServices(servicesList)
+	} 
+	
+	if polling, ok := expandCloudConnectionConfigurationDetailsPolling(details, d); ok {
+		azureConfigurationDetails.SetPolling(polling)
+	}
+
+	if importTags, ok := expandCloudConnectionConfigurationDetailsImportTags(details, d); ok {
+		azureConfigurationDetails.SetImportTags(importTags)
+	}
+
+	if tagFilter != "" {
+		azureConfigurationDetails.SetTagFilter(tagFilter)
+	}
+
+	return azureConfigurationDetails
+}
+
+func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *schema.ResourceData) cloudConnectionApi.ConfigurationUpdateDetails {
+	azureConfigurationDetails := cloudConnectionApi.AzureConfigurationDetails{}
+
+	details, _ := singleListToMap(v)
+	regions := details["regions"].([]interface{})
+	tagFilter := details["tag_filter"].(string)
+	resourceGroups := details["resource_groups"].([]interface{})
+
+	services := details["services"].(*schema.Set).List()
 	servicesList := make([]map[string]interface{}, 0, len(services))
 	for _, v := range services {
 		service := v.(map[string]interface{})
@@ -169,11 +187,11 @@ func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *sche
 		if service["tag_filter"].(string) != "" {
 			serviceMap["tagFilter"] = service["tag_filter"]
 		}
-		if polling,ok:=singleListToMap(service["polling"]);ok{
+		if polling, ok := singleListToMap(service["polling"]); ok {
 			serviceMap["polling"] = polling
 		}
-	
-		if importTags,ok:=singleListToMap(service["import_tags"]);ok{
+
+		if importTags, ok := singleListToMap(service["import_tags"]); ok {
 			tags := importTags
 			tags["excludedKeys"] = tags["excluded_keys"]
 			delete(tags, "excluded_keys")
@@ -188,13 +206,25 @@ func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *sche
 	} else {
 		azureConfigurationDetails.SetRegions(make([]string, 0))
 	}
+
+	if len(resourceGroups) > 0 {
+		azureConfigurationDetails.SetResourceGroups(toSliceString(resourceGroups))
+	} else {
+		azureConfigurationDetails.SetResourceGroups(make([]string, 0))
+	}
+
+	if len(servicesList) > 0 {
+		azureConfigurationDetails.SetServices(servicesList)
+	}
+
 	if polling, ok := expandCloudConnectionConfigurationDetailsPolling(details, d); ok {
 		azureConfigurationDetails.SetPolling(polling)
 	}
+
 	if importTags, ok := expandCloudConnectionConfigurationDetailsImportTags(details, d); ok {
 		azureConfigurationDetails.SetImportTags(importTags)
 	} else {
-		importTags := cloudconnectionapi.ImportTagConfiguration{}
+		importTags := cloudConnectionApi.ImportTagConfiguration{}
 		importTags.Enabled = true
 		importTags.ExcludedKeys = make([]string, 0)
 		azureConfigurationDetails.SetImportTags(importTags)
@@ -202,21 +232,12 @@ func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *sche
 
 	azureConfigurationDetails.SetTagFilter(tagFilter)
 
-	if len(servicesList) > 0 {
-		azureConfigurationDetails.SetServices(servicesList)
-	}
-	if len(resourceGroups) > 0 {
-		azureConfigurationDetails.SetResourceGroups(toSliceString(resourceGroups))
-	} else {
-		azureConfigurationDetails.SetResourceGroups(make([]string, 0))
-	}
-
-	azureUpdateDetails := AzureConfigurationDetailsAsConfigurationUpdateDetails(&azureConfigurationDetails)
+	azureUpdateDetails := azureConfigurationDetailsAsConfigurationUpdateDetails(&azureConfigurationDetails)
 	return azureUpdateDetails
 }
 
-func AzureConfigurationDetailsAsConfigurationUpdateDetails(v *cloudconnectionapi.AzureConfigurationDetails) cloudconnectionapi.ConfigurationUpdateDetails {
-	return cloudconnectionapi.ConfigurationUpdateDetails{
+func azureConfigurationDetailsAsConfigurationUpdateDetails(v *cloudConnectionApi.AzureConfigurationDetails) cloudConnectionApi.ConfigurationUpdateDetails {
+	return cloudConnectionApi.ConfigurationUpdateDetails{
 		AzureConfigurationDetails: v,
 	}
 }
