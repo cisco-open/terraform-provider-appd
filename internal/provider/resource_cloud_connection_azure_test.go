@@ -125,59 +125,58 @@ func TestAccAppdynamicscloudConnectionAzure_Basic(t *testing.T) {
 	})
 }
 
-// func TestAccAppdynamicscloudConnectionAzure_Update(t *testing.T) {
-// 	var connectionAzure_default models.ConnectionAzure
-// 	var connectionAzure_updated models.ConnectionAzure
-// 	resourceName := "appdynamicscloud_connection_azure.test"
-// 	rName := makeTestVariable(acctest.RandString(5))
+func TestAccAppdynamicscloudConnectionAzure_Update(t *testing.T) {
+	var connectionAzure_default cloudconnectionapi.ConnectionResponse
+	var connectionAzure_updated cloudconnectionapi.ConnectionResponse
+	resourceName := "appdynamicscloud_connection_azure.test"
+	rName := makeTestVariable(acctest.RandString(5))
 
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheck(t) },
-// 		ProviderFactories: providerFactories,
-// 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAzureDestroy,
-// 		Steps: append([]resource.TestStep{
-// 			{
-// 				Config: CreateAccConnectionAzureConfig(rName),
-// 				Check:  testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, &connectionAzure_default),
-// 			},
-// 		}, generateStepForUpdatedAttrConnectionAzure(rName, resourceName, &connectionAzure_default, &connectionAzure_updated)...),
-// 	})
-// }
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAzureDestroy,
+		Steps: append([]resource.TestStep{
+			{
+				Config: CreateAccConnectionAzureConfig(rName),
+				Check:  testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, &connectionAzure_default),
+			},
+		}, generateStepForUpdatedAttrConnectionAzure(rName, resourceName, &connectionAzure_default, &connectionAzure_updated)...),
+	})
+}
 
-// func TestAccAppdynamicscloudConnectionAzure_NegativeCases(t *testing.T) {
-// 	resourceName := "appdynamicscloud_connection_azure.test"
+func TestAccAppdynamicscloudConnectionAzure_NegativeCases(t *testing.T) {
+	resourceName := "appdynamicscloud_connection_azure.test"
 
-// 	// [TODO]: Add makeTestVariable() to utils.go file
-// 	rName := makeTestVariable(acctest.RandString(5))
+	rName := makeTestVariable(acctest.RandString(5))
 
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheck(t) },
-// 		ProviderFactories: providerFactories,
-// 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAzureDestroy,
-// 		Steps: append([]resource.TestStep{
-// 			{
-// 				Config: CreateAccConnectionAzureConfig(rName),
-// 			},
-// 		}, generateNegativeStepsConnectionAzure(rName, resourceName)...),
-// 	})
-// }
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAzureDestroy,
+		Steps: append([]resource.TestStep{
+			{
+				Config: CreateAccConnectionAzureConfig(rName),
+			},
+		}, generateNegativeStepsConnectionAzure(rName, resourceName)...),
+	})
+}
 
-// func TestAccAppdynamicscloudConnectionAzure_MultipleCreateDelete(t *testing.T) {
+func TestAccAppdynamicscloudConnectionAzure_MultipleCreateDelete(t *testing.T) {
 
-// 	// [TODO]: Add makeTestVariable() to utils.go file
-// 	rName := makeTestVariable(acctest.RandString(5))
+	// [TODO]: Add makeTestVariable() to utils.go file
+	rName := makeTestVariable(acctest.RandString(5))
 
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheck(t) },
-// 		ProviderFactories: providerFactories,
-// 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAzureDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: CreateAccConnectionAzureMultipleConfig(rName),
-// 			},
-// 		},
-// 	})
-// }
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAzureDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: CreateAccConnectionAzureMultipleConfig(rName),
+			},
+		},
+	})
+}
 
 func CreateAccConnectionAzureWithoutDisplayName(rName string) string {
 	var resource string
@@ -563,260 +562,227 @@ func CreateAccConnectionAzureUpdateRequiredDetailsSubscriptionId(rName string) s
 	return resource
 }
 
-// func CreateAccConnectionAzureUpdatedAttrDescription(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAzure(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAzureConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_azure" "test" {
+func CreateAccConnectionAzureUpdatedAttrDescription(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentConnectionAzure(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAzureConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_azure" "test" {
 
-// 							display_name = "%v"
+							display_name = "%v"
 
-// 							description = "%v"
+							description = "%v"
 
-// 							state = "%v"
+							state = "%v"
 
-// 							state_message = "%v"
+							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
 
-// 							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
+							details {
 
-// 							details {
+                            client_id = "%v"
 
-//                             client_id = "%v"
+                            client_secret = "%v"
 
-//                             client_secret = "%v"
+                            tenant_id = "%v"
 
-//                             tenant_id = "%v"
+                            subscription_id = "%v"
 
-//                             subscription_id = "%v"
+							}
+		}
+	`, rName,
+		value,
+		searchInObject(resourceConnectionAzureTest, "state.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"))
+	return resource
+}
+func CreateAccConnectionAzureUpdatedAttrState(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentConnectionAzure(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAzureConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_azure" "test" {
 
-// 							}
+							display_name = "%v"
 
-// 							created_at = "%v"
+							description = "%v"
 
-// 							updated_at = "%v"
-// 		}
-// 	`, rName,
-// 		value,
-// 		searchInObject(resourceConnectionAzureTest, "state.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "state_message.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "created_at.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "updated_at.valid.0"))
-// 	return resource
-// }
-// func CreateAccConnectionAzureUpdatedAttrState(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAzure(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAzureConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_azure" "test" {
+							state = "%v"
 
-// 							display_name = "%v"
+							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
 
-// 							description = "%v"
+							details {
 
-// 							state = "%v"
+                            client_id = "%v"
 
-// 							state_message = "%v"
+                            client_secret = "%v"
 
-// 							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
+                            tenant_id = "%v"
 
-// 							details {
+                            subscription_id = "%v"
 
-//                             client_id = "%v"
+							}
+		}
+	`, rName,
+		searchInObject(resourceConnectionAzureTest, "description.valid.0"),
+		value,
+		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"))
+	return resource
+}
+func CreateAccConnectionAzureUpdatedAttrConfigurationId(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentConnectionAzure(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAzureConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_azure" "test" {
 
-//                             client_secret = "%v"
+							display_name = "%v"
 
-//                             tenant_id = "%v"
+							description = "%v"
 
-//                             subscription_id = "%v"
+							state = "%v"
 
-// 							}
+							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
 
-// 							created_at = "%v"
+							details {
 
-// 							updated_at = "%v"
-// 		}
-// 	`, rName,
-// 		searchInObject(resourceConnectionAzureTest, "description.valid.0"),
-// 		value,
-// 		searchInObject(resourceConnectionAzureTest, "state_message.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "created_at.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "updated_at.valid.0"))
-// 	return resource
-// }
-// func CreateAccConnectionAzureUpdatedAttrConfigurationId(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAzure(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAzureConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_azure" "test" {
+                            client_id = "%v"
 
-// 							display_name = "%v"
+                            client_secret = "%v"
 
-// 							description = "%v"
+                            tenant_id = "%v"
 
-// 							state = "%v"
+                            subscription_id = "%v"
 
-// 							state_message = "%v"
+							}
 
-// 							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
+		}
+	`, rName,
+		searchInObject(resourceConnectionAzureTest, "description.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "state.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "created_at.valid.0"),
+		searchInObject(resourceConnectionAzureTest, "updated_at.valid.0"))
+	return resource
+}
 
-// 							details {
+func generateStepForUpdatedAttrConnectionAzure(rName string, resourceName string, connectionAzure_default, connectionAzure_updated *models.ConnectionAzure) []resource.TestStep {
+	testSteps := make([]resource.TestStep, 0, 1)
+	var valid []interface{}
+	valid = searchInObject(resourceConnectionAzureTest, "description.valid").([]interface{})
+	for _, value := range valid {
+		v := fmt.Sprintf("%v", value)
+		testSteps = append(testSteps, resource.TestStep{
+			Config: CreateAccConnectionAzureUpdatedAttrDescription(rName, value),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, connectionAzure_updated),
+				resource.TestCheckResourceAttr(resourceName, "description", v),
+				testAccCheckAppdynamicscloudConnectionAzureIdEqual(connectionAzure_default, connectionAzure_updated),
+			),
+		})
+	}
+	valid = searchInObject(resourceConnectionAzureTest, "state.valid").([]interface{})
+	for _, value := range valid {
+		v := fmt.Sprintf("%v", value)
+		testSteps = append(testSteps, resource.TestStep{
+			Config: CreateAccConnectionAzureUpdatedAttrState(rName, value),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, connectionAzure_updated),
+				resource.TestCheckResourceAttr(resourceName, "state", v),
+				testAccCheckAppdynamicscloudConnectionAzureIdEqual(connectionAzure_default, connectionAzure_updated),
+			),
+		})
+	}
+	valid = searchInObject(resourceConnectionAzureTest, "configuration_id.valid").([]interface{})
+	for _, value := range valid {
+		v := fmt.Sprintf("%v", value)
+		testSteps = append(testSteps, resource.TestStep{
+			Config: CreateAccConnectionAzureUpdatedAttrConfigurationId(rName, value),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, connectionAzure_updated),
+				resource.TestCheckResourceAttr(resourceName, "configuration_id", v),
+				testAccCheckAppdynamicscloudConnectionAzureIdEqual(connectionAzure_default, connectionAzure_updated),
+			),
+		})
+	}
+	return testSteps
+}
 
-//                             client_id = "%v"
+func generateNegativeStepsConnectionAzure(rName string, resourceName string) []resource.TestStep {
+	//Use Update Config Function with false value
+	testSteps := make([]resource.TestStep, 0, 1)
+	var invalid []interface{}
+	invalid = searchInObject(resourceConnectionAzureTest, "state.invalid").([]interface{})
+	for _, value := range invalid {
+		testSteps = append(testSteps, resource.TestStep{
+			Config:      CreateAccConnectionAzureUpdatedAttrState(rName, value),
+			ExpectError: regexp.MustCompile(expectErrorMap["StringInSlice"]),
+		})
+	}
+	invalid = searchInObject(resourceConnectionAzureTest, "configuration_id.invalid").([]interface{})
+	for _, value := range invalid {
+		testSteps = append(testSteps, resource.TestStep{
+			Config:      CreateAccConnectionAzureUpdatedAttrConfigurationId(rName, value),
+			ExpectError: regexp.MustCompile(expectErrorMap["IsUUID"]),
+		})
+	}
+	testSteps = append(testSteps, resource.TestStep{
+		Config: CreateAccConnectionAzureConfig(rName),
+	})
+	return testSteps
+}
 
-//                             client_secret = "%v"
+func CreateAccConnectionAzureMultipleConfig(rName string) string {
+	var resource string
+	parentResources := getParentConnectionAzure(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAzureConfig(parentResources)
+	multipleValues := searchInObject(resourceConnectionAzureTest, "display_name.multiple_valids").([]interface{})
+	for i, val := range multipleValues {
+		resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_azure" "test%d" {
 
-//                             tenant_id = "%v"
+							display_name = "%v"
 
-//                             subscription_id = "%v"
+							description = "%v"
 
-// 							}
+							state = "%v"
 
-// 							created_at = "%v"
+							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
 
-// 							updated_at = "%v"
-// 		}
-// 	`, rName,
-// 		searchInObject(resourceConnectionAzureTest, "description.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "state.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "state_message.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "created_at.valid.0"),
-// 		searchInObject(resourceConnectionAzureTest, "updated_at.valid.0"))
-// 	return resource
-// }
+							details {
 
-// func generateStepForUpdatedAttrConnectionAzure(rName string, resourceName string, connectionAzure_default, connectionAzure_updated *models.ConnectionAzure) []resource.TestStep {
-// 	testSteps := make([]resource.TestStep, 0, 1)
-// 	var valid []interface{}
-// 	valid = searchInObject(resourceConnectionAzureTest, "description.valid").([]interface{})
-// 	for _, value := range valid {
-// 		v := fmt.Sprintf("%v", value)
-// 		testSteps = append(testSteps, resource.TestStep{
-// 			Config: CreateAccConnectionAzureUpdatedAttrDescription(rName, value),
-// 			Check: resource.ComposeTestCheckFunc(
-// 				testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, connectionAzure_updated),
-// 				resource.TestCheckResourceAttr(resourceName, "description", v),
-// 				testAccCheckAppdynamicscloudConnectionAzureIdEqual(connectionAzure_default, connectionAzure_updated),
-// 			),
-// 		})
-// 	}
-// 	valid = searchInObject(resourceConnectionAzureTest, "state.valid").([]interface{})
-// 	for _, value := range valid {
-// 		v := fmt.Sprintf("%v", value)
-// 		testSteps = append(testSteps, resource.TestStep{
-// 			Config: CreateAccConnectionAzureUpdatedAttrState(rName, value),
-// 			Check: resource.ComposeTestCheckFunc(
-// 				testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, connectionAzure_updated),
-// 				resource.TestCheckResourceAttr(resourceName, "state", v),
-// 				testAccCheckAppdynamicscloudConnectionAzureIdEqual(connectionAzure_default, connectionAzure_updated),
-// 			),
-// 		})
-// 	}
-// 	valid = searchInObject(resourceConnectionAzureTest, "configuration_id.valid").([]interface{})
-// 	for _, value := range valid {
-// 		v := fmt.Sprintf("%v", value)
-// 		testSteps = append(testSteps, resource.TestStep{
-// 			Config: CreateAccConnectionAzureUpdatedAttrConfigurationId(rName, value),
-// 			Check: resource.ComposeTestCheckFunc(
-// 				testAccCheckAppdynamicscloudConnectionAzureExists(resourceName, connectionAzure_updated),
-// 				resource.TestCheckResourceAttr(resourceName, "configuration_id", v),
-// 				testAccCheckAppdynamicscloudConnectionAzureIdEqual(connectionAzure_default, connectionAzure_updated),
-// 			),
-// 		})
-// 	}
-// 	return testSteps
-// }
+                            client_id = "%v"
 
-// func generateNegativeStepsConnectionAzure(rName string, resourceName string) []resource.TestStep {
-// 	//Use Update Config Function with false value
-// 	testSteps := make([]resource.TestStep, 0, 1)
-// 	var invalid []interface{}
-// 	invalid = searchInObject(resourceConnectionAzureTest, "state.invalid").([]interface{})
-// 	for _, value := range invalid {
-// 		testSteps = append(testSteps, resource.TestStep{
-// 			Config:      CreateAccConnectionAzureUpdatedAttrState(rName, value),
-// 			ExpectError: regexp.MustCompile(expectErrorMap["StringInSlice"]),
-// 		})
-// 	}
-// 	invalid = searchInObject(resourceConnectionAzureTest, "configuration_id.invalid").([]interface{})
-// 	for _, value := range invalid {
-// 		testSteps = append(testSteps, resource.TestStep{
-// 			Config:      CreateAccConnectionAzureUpdatedAttrConfigurationId(rName, value),
-// 			ExpectError: regexp.MustCompile(expectErrorMap["IsUUID"]),
-// 		})
-// 	}
-// 	testSteps = append(testSteps, resource.TestStep{
-// 		Config: CreateAccConnectionAzureConfig(rName),
-// 	})
-// 	return testSteps
-// }
+                            client_secret = "%v"
 
-// func CreateAccConnectionAzureMultipleConfig(rName string) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAzure(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAzureConfig(parentResources)
-// 	multipleValues := searchInObject(resourceConnectionAzureTest, "display_name.multiple_valids").([]interface{})
-// 	for i, val := range multipleValues {
-// 		resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_azure" "test%d" {
+                            tenant_id = "%v"
 
-// 							display_name = "%v"
+                            subscription_id = "%v"
 
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							state_message = "%v"
-
-// 							configuration_id = appdynamicscloud_connection_configuration_azure.test.id
-
-// 							details {
-
-//                             client_id = "%v"
-
-//                             client_secret = "%v"
-
-//                             tenant_id = "%v"
-
-//                             subscription_id = "%v"
-
-// 							}
-
-// 							created_at = "%v"
-
-// 							updated_at = "%v"
-// 			}
-// 		`, i, val,
-// 			searchInObject(resourceConnectionAzureTest, "description.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "state.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "state_message.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "created_at.valid.0"),
-// 			searchInObject(resourceConnectionAzureTest, "updated_at.valid.0"))
-// 	}
-// 	return resource
-// }
+							}
+			}
+		`, i, val,
+			searchInObject(resourceConnectionAzureTest, "description.valid.0"),
+			searchInObject(resourceConnectionAzureTest, "state.valid.0"),
+			searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
+			searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
+			searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
+			searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"))
+	}
+	return resource
+}
 
 func testAccCheckAppdynamicscloudConnectionAzureExists(name string, connectionAzure *cloudconnectionapi.ConnectionResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -901,15 +867,10 @@ func connectionAzureBlock(rName string) string {
 
 						state = "%v"
 
-
-						state_message = "%v"
-
-
 						configuration_id = appdynamicscloud_connection_configuration_azure.test.id
 
                         details {
     
-                                                
                             client_id = "%v"
                         
                             client_secret = "%v"
@@ -920,22 +881,14 @@ func connectionAzureBlock(rName string) string {
 
                         }
 
-						created_at = "%v"
-
-
-						updated_at = "%v"
-
 		}
 	`, rName,
 		searchInObject(resourceConnectionAzureTest, "description.valid.0"),
 		searchInObject(resourceConnectionAzureTest, "state.valid.0"),
-		searchInObject(resourceConnectionAzureTest, "state_message.valid.0"),
 		searchInObject(resourceConnectionAzureTest, "details.client_id.valid.0"),
 		searchInObject(resourceConnectionAzureTest, "details.client_secret.valid.0"),
 		searchInObject(resourceConnectionAzureTest, "details.tenant_id.valid.0"),
-		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"),
-		searchInObject(resourceConnectionAzureTest, "created_at.valid.0"),
-		searchInObject(resourceConnectionAzureTest, "updated_at.valid.0"))
+		searchInObject(resourceConnectionAzureTest, "details.subscription_id.valid.0"))
 }
 
 // To eliminate duplicate resource block from slice of resource blocks
