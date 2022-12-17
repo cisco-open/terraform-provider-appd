@@ -245,14 +245,17 @@ func importTagsSuppressFunc(k, oldValue, newValue string, d *schema.ResourceData
 	return false
 }
 func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface{}) error {
-	len := rd.GetRawConfig().GetAttr("details").AsValueSlice()[0].GetAttr("services").AsValueSet().Length()
+	var length int
+	if len(rd.GetRawConfig().GetAttr("details").AsValueSlice()) > 0 {
+		length = rd.GetRawConfig().GetAttr("details").AsValueSlice()[0].GetAttr("services").AsValueSet().Length()
+	}
 
 	val, exist := rd.GetOkExists("details_service_default")
-	if !exist && len == 0 {
+	if !exist && length == 0 {
 		rd.SetNew("details_service_default", true)
-	} else if exist && len > 0 {
+	} else if exist && length > 0 {
 		rd.SetNew("details_service_default", false)
-	} else if len == 0 && exist == true && val == false {
+	} else if length == 0 && exist == true && val == false {
 		return fmt.Errorf(serviceEmptyErrorMsg)
 	}
 	return nil
