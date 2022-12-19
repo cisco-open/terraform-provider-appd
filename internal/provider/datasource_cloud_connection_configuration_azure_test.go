@@ -41,7 +41,7 @@ func TestAccAppdynamicscloudConnectionConfigurationAzureDataSource_Basic(t *test
 			},
 			{
 				Config:      CreateAccConnectionConfigurationAzureDataSourceWithInvalidConfigurationId(rName),
-				ExpectError: regexp.MustCompile(""), // `(.)+ Object may not exists`
+				ExpectError: regexp.MustCompile("expected (.)+ to be a valid UUID, got (.)+"),
 			},
 			{
 				Config: CreateAccConnectionConfigurationAzureDataSourceConfig(rName),
@@ -88,6 +88,6 @@ func CreateAccConnectionConfigurationAzureDataSourceWithInvalidConfigurationId(r
 		data "appdynamicscloud_connection_configuration_azure" "test" {					
 			configuration_id = "%v"
 		}
-	`, "123e4567-e89b-12d3-a456-426614174000")
+	`, "abcd")
 	return resource
 }
