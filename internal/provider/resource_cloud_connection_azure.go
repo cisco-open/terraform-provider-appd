@@ -20,7 +20,7 @@ func resourceCloudConnectionAzure() *schema.Resource {
 		DeleteContext: resourceCloudConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceCloudConnectionAzureImport,
 		},
 
 		SchemaVersion: 1,
@@ -63,6 +63,23 @@ func resourceCloudConnectionAzure() *schema.Resource {
 			},
 		}),
 	}
+}
+
+func resourceCloudConnectionAzureImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	myctx, _, apiClient := initializeCloudConnectionClient(m)
+
+	connectionId := d.Id()
+
+	resp, _, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	d.Set("details", flattenCloudConnectionAzureDetails(resp, d))
+
+	flattenCloudConnectionCommons(resp, d)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -114,6 +131,10 @@ func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceDat
 
 	resp, httpResp, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
 	if err != nil {
+		if httpResp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
 		return errRespToDiag(err, httpResp)
 	}
 

@@ -24,9 +24,18 @@ func dataSourceCloudConnectionAzure() *schema.Resource {
 }
 
 func dataSourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	id := d.Get("connection_id").(string)
+	connectionId := d.Get("connection_id").(string)
 
-	d.SetId(id)
+	myctx, _, apiClient := initializeCloudConnectionClient(meta)
 
-	return resourceCloudConnectionAzureRead(ctx, d, meta)
+	resp, httpResp, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
+	if err != nil {
+		return errRespToDiag(err, httpResp)
+	}
+
+	d.Set("details", flattenCloudConnectionAzureDetails(resp, d))
+
+	flattenCloudConnectionCommons(resp, d)
+
+	return nil
 }
