@@ -29,7 +29,6 @@ func TestAccAppdynamicscloudConnectionConfigurationAzureDataSource_Basic(t *test
 			{
 				Config: CreateAccConnectionConfigurationAzureDataSourceConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					// resource.TestCheckResourceAttrPair(dataSourceName, "configuration_id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "display_name", resourceName, "display_name"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "description", resourceName, "description"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "details.#", resourceName, "details.#"),
@@ -81,9 +80,6 @@ func CreateAccConnectionConfigurationAzureUpdatedConfigDataSourceRandomAttr(key,
 
 func CreateAccConnectionConfigurationAzureDataSourceWithInvalidConfigurationId(rName string) string {
 	var resource string
-	// parentResources := getParentConnectionConfigurationAzure(rName)
-	// parentResources = parentResources[:len(parentResources)-1]
-	// resource += createConnectionConfigurationAzureConfig(parentResources)
 	resource += fmt.Sprintf(`
 		data "appdynamicscloud_connection_configuration_azure" "test" {					
 			configuration_id = "%v"

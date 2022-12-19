@@ -122,8 +122,6 @@ func TestAccAppdynamicscloudConnectionConfigurationAzure_Basic(t *testing.T) {
 	resourceName := "appdynamicscloud_connection_configuration_azure.test"
 
 	rName := makeTestVariable(acctest.RandString(5))
-	// rOther := makeTestVariable(acctest.RandString(5))
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
@@ -190,9 +188,6 @@ func TestAccAppdynamicscloudConnectionConfigurationAzure_Basic(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{"details_service_default"},
 			},
-			// {
-			// 	Config: CreateAccConnectionConfigurationAzureConfig(rName),
-			// },
 		}, generateStepForUpdatedRequiredAttrConnectionConfigurationAzure(rName, resourceName, &connectionConfigurationAzure_default, &connectionConfigurationAzure_updated)...),
 	})
 }
@@ -235,7 +230,6 @@ func TestAccAppdynamicscloudConnectionConfigurationAzure_NegativeCases(t *testin
 
 func TestAccAppdynamicscloudConnectionConfigurationAzure_MultipleCreateDelete(t *testing.T) {
 
-	// [TODO]: Add makeTestVariable() to utils.go file
 	rName := makeTestVariable(acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
@@ -916,85 +910,6 @@ func CreateAccConnectionConfigurationAzureUpdatedAttrDetailsPollingUnit(rName st
 	return resource
 }
 
-// func CreateAccConnectionConfigurationAzureUpdatedAttrDetailsImportTagsEnabled(rName string, value interface{}) string {
-// 	resource := fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_configuration_azure" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							details {
-
-// 						    regions = ["%v", "%v"]
-
-// 						    resource_groups = ["%v", "%v"]
-
-// 						    polling {
-
-//                                 interval = %v
-
-//                                 unit = "%v"
-
-//                               }
-
-// 						        import_tags {
-
-// 						            enabled = "%v"
-
-// 						            excluded_keys = ["%v", "%v"]
-
-// 						          }
-
-//                                     tag_filter = "%v"
-
-// 						            services {
-
-//                                         name = "%v"
-
-//                                         import_tags {
-
-//                                             enabled = "%v"
-
-//                                             excluded_keys = ["%v","%v"]
-
-//                                           }
-
-//                                             tag_filter = "%v"
-
-//                                             polling {
-
-//                                                 interval = %v
-
-//                                                 unit = "%v"
-
-//                                               }
-
-//                                               }
-
-// 							}
-// 		}
-// 	`, rName,
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "description.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.regions.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.regions.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.resource_groups.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.resource_groups.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.polling.unit.valid.0"),
-// 		value,
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.name.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.polling.unit.valid.0"))
-// 	return resource
-// }
 func CreateAccConnectionConfigurationAzureUpdatedAttrDetailsImportTagsExcludedKeys(rName string, value interface{}) string {
 	resource := fmt.Sprintf(`
 			resource "appdynamicscloud_connection_configuration_azure" "test" {
@@ -1152,86 +1067,6 @@ func CreateAccConnectionConfigurationAzureUpdatedAttrDetailsTagFilter(rName stri
 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.polling.unit.valid.0"))
 	return resource
 }
-
-// func CreateAccConnectionConfigurationAzureUpdatedAttrDetailsServicesImportTagsEnabled(rName string, value interface{}) string {
-// 	resource := fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_configuration_azure" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							details {
-
-// 						    regions = ["%v", "%v"]
-
-// 						    resource_groups = ["%v", "%v"]
-
-// 						    polling {
-
-//                                 interval = %v
-
-//                                 unit = "%v"
-
-//                               }
-
-// 						        import_tags {
-
-//                                     enabled = "%v"
-
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-
-//                                     tag_filter = "%v"
-
-// 						            services {
-
-//                                         name = "%v"
-
-// 						                import_tags {
-
-// 						                    enabled = "%v"
-
-// 						                    excluded_keys = ["%v", "%v"]
-
-// 						                  }
-
-//                                             tag_filter = "%v"
-
-// 						                    polling {
-
-//                                                 interval = %v
-
-//                                                 unit = "%v"
-
-//                                               }
-
-// 						                      }
-
-// 							}
-// 		}
-// 	`, rName,
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "description.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.regions.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.regions.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.resource_groups.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.resource_groups.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.polling.unit.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.name.valid.0"),
-// 		value,
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.services.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.services.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionConfigurationAzureTest, "details.services.services.polling.unit.valid.0"))
-// 	return resource
-// }
 
 func CreateAccConnectionConfigurationAzureUpdatedAttrDetailsServicesImportTagsExcludedKeys(rName string, value interface{}) string {
 	var resource string
@@ -1618,18 +1453,6 @@ func generateStepForUpdatedAttrConnectionConfigurationAzure(rName string, resour
 		})
 	}
 
-	// valid = searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.enabled.valid").([]interface{})
-	// for _, value := range valid {
-	// 	v := fmt.Sprintf("%v", value)
-	// 	testSteps = append(testSteps, resource.TestStep{
-	// 		Config: CreateAccConnectionConfigurationAzureUpdatedAttrDetailsImportTagsEnabled(rName, value),
-	// 		Check: resource.ComposeTestCheckFunc(
-	// 			testAccCheckAppdynamicscloudConnectionConfigurationAzureExists(resourceName, connectionConfigurationAzure_updated),
-	// 			resource.TestCheckResourceAttr(resourceName, "details.0.import_tags.0.enabled", v),
-	// 			testAccCheckAppdynamicscloudConnectionConfigurationAzureIdEqual(connectionConfigurationAzure_default, connectionConfigurationAzure_updated),
-	// 		),
-	// 	})
-	// }
 	valid = searchInObject(resourceConnectionConfigurationAzureTest, "details.import_tags.excluded_keys.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -1655,18 +1478,7 @@ func generateStepForUpdatedAttrConnectionConfigurationAzure(rName string, resour
 			),
 		})
 	}
-	// valid = searchInObject(resourceConnectionConfigurationAzureTest, "details.services.import_tags.enabled.valid").([]interface{})
-	// for _, value := range valid {
-	// 	v := fmt.Sprintf("%v", value)
-	// 	testSteps = append(testSteps, resource.TestStep{
-	// 		Config: CreateAccConnectionConfigurationAzureUpdatedAttrDetailsServicesImportTagsEnabled(rName, value),
-	// 		Check: resource.ComposeTestCheckFunc(
-	// 			testAccCheckAppdynamicscloudConnectionConfigurationAzureExists(resourceName, connectionConfigurationAzure_updated),
-	// 			resource.TestCheckResourceAttr(resourceName, "details.0.services.0.import_tags.0.enabled", v),
-	// 			testAccCheckAppdynamicscloudConnectionConfigurationAzureIdEqual(connectionConfigurationAzure_default, connectionConfigurationAzure_updated),
-	// 		),
-	// 	})
-	// }
+
 	valid = searchInObject(resourceConnectionConfigurationAzureTest, "details.services.import_tags.excluded_keys.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -1721,7 +1533,6 @@ func generateStepForUpdatedAttrConnectionConfigurationAzure(rName string, resour
 }
 
 func generateNegativeStepsConnectionConfigurationAzure(rName string, resourceName string) []resource.TestStep {
-	//Use Update Config Function with false value
 	testSteps := make([]resource.TestStep, 0, 1)
 	var invalid []interface{}
 	invalid = searchInObject(resourceConnectionConfigurationAzureTest, "details.polling.unit.invalid").([]interface{})
