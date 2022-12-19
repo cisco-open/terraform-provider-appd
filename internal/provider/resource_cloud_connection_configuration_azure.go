@@ -18,7 +18,7 @@ func resourceCloudConnectionConfigurationAzure() *schema.Resource {
 		DeleteContext: resourceCloudConnectionConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			State: resourceCloudConnectionConfigurationAzureImport,
 		},
 
 		CustomizeDiff: customdiff.All(serviceAtLeastOne),
@@ -26,6 +26,21 @@ func resourceCloudConnectionConfigurationAzure() *schema.Resource {
 
 		Schema: getCloudConnectionConfigurationAzureSchema(),
 	}
+}
+
+func resourceCloudConnectionConfigurationAzureImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error){
+	myCtx, _, apiClient := initializeCloudConnectionClient(m)
+
+	configurationId := d.Id()
+
+	resp, _, err := apiClient.ConfigurationsApi.GetConfiguration(myCtx, configurationId).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	flattenCloudConnectionConfigurationCommons(resp, d)
+	flattenCloudConnectionConfigurationCommonsDetails(resp, d, "azure")
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceCloudConnectionConfigurationAzureCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

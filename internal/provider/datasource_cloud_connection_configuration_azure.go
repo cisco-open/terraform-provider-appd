@@ -23,10 +23,18 @@ func dataSourceCloudConnectionConfigurationAzure() *schema.Resource {
 	}
 }
 
-func dataSourceCloudConnectionConfigurationAzureRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceCloudConnectionConfigurationAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	id := d.Get("configuration_id").(string)
 
-	d.SetId(id)
+	myCtx, _, apiClient := initializeCloudConnectionClient(m)
 
-	return resourceCloudConnectionConfigurationAzureRead(ctx, d, meta)
+	resp, httpResp, err := apiClient.ConfigurationsApi.GetConfiguration(myCtx, id).Execute()
+	if err != nil {
+		return errRespToDiag(err, httpResp)
+	}
+	d.SetId(resp.Id)
+	flattenCloudConnectionConfigurationCommons(resp, d)
+	flattenCloudConnectionConfigurationCommonsDetails(resp, d, "azure")
+
+	return nil
 }
