@@ -69,6 +69,10 @@ func Provider() *schema.Provider {
 			"appdynamicscloud_connection_azure":               dataSourceCloudConnectionAzure(),
 			"appdynamicscloud_connection_configuration_azure": dataSourceCloudConnectionConfigurationAzure(),
 			"appdynamicscloud_query":                          dataSourceCloudQuery(),
+			"appdynamicscloud_regions_azure":                  dataSourceCloudRegionsAzure(),
+			"appdynamicscloud_regions_aws":                    dataSourceCloudRegionsAWS(),
+			"appdynamicscloud_services_azure":                 dataSourceCloudServicesAzure(),
+			"appdynamicscloud_services_aws":                   dataSourceCloudServicesAWS(),
 		},
 		ConfigureContextFunc: configureClient,
 	}
