@@ -46,6 +46,15 @@ func cloudConnectionSchemaExtras() map[string]*schema.Schema {
 			Description:      "Connection state. This can only be used if configuration_id is specified. Possible values: [\"ACTIVE\", \"INACTIVE\"]",
 			Optional:         true,
 			Computed:         true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// Connection can go into inactive state only after it is
+				// activated at least once.
+				//
+				// Thus, if it is created with inactive state at the
+				// time of creation, it will go into configured state,
+				// which is technically the same hence suppressing diff.
+				return oldValue == "CONFIGURED" && newValue == "INACTIVE"
+			},
 		},
 		"state_message": {
 			Type:        schema.TypeString,
