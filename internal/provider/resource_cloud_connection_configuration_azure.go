@@ -30,9 +30,13 @@ func resourceCloudConnectionConfigurationAzureRead(ctx context.Context, d *schem
 
 	configurationId := d.Id()
 
-	resp, _, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, configurationId).Execute()
+	resp, httpResp, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, configurationId).Execute()
 	if err != nil {
-		return diag.FromErr(err)
+		if httpResp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+		return errRespToDiag(err, httpResp)
 	}
 
 	flattenCloudConnectionConfigurationCommons(resp, d)
@@ -76,7 +80,7 @@ func resourceCloudConnectionConfigurationAzureCreate(ctx context.Context, d *sch
 func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.AzureConfigurationDetails {
 	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
-	details,_:=singleListToMap(v)
+	details, _ := singleListToMap(v)
 	regions := details["regions"].([]interface{})
 	tagFilter := details["tag_filter"].(string)
 	resourceGroups := details["resource_groups"].([]interface{})
@@ -90,17 +94,17 @@ func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *sche
 		if service["tag_filter"].(string) != "" {
 			serviceMap["tagFilter"] = service["tag_filter"]
 		}
-		if polling,ok:=singleListToMap(service["polling"]);ok{
+		if polling, ok := singleListToMap(service["polling"]); ok {
 			serviceMap["polling"] = polling
 		}
-	
-		if importTags,ok:=singleListToMap(service["import_tags"]);ok{
+
+		if importTags, ok := singleListToMap(service["import_tags"]); ok {
 			tags := importTags
 			tags["excludedKeys"] = tags["excluded_keys"]
 			delete(tags, "excluded_keys")
 			serviceMap["importTags"] = tags
 		}
-	
+
 		servicesList = append(servicesList, serviceMap)
 	}
 
@@ -154,7 +158,7 @@ func resourceCloudConnectionConfigurationAzureUpdate(ctx context.Context, d *sch
 func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.ConfigurationUpdateDetails {
 	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
-	details,_:=singleListToMap(v)
+	details, _ := singleListToMap(v)
 
 	regions := details["regions"].([]interface{})
 	tagFilter := details["tag_filter"].(string)
@@ -169,11 +173,11 @@ func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *sche
 		if service["tag_filter"].(string) != "" {
 			serviceMap["tagFilter"] = service["tag_filter"]
 		}
-		if polling,ok:=singleListToMap(service["polling"]);ok{
+		if polling, ok := singleListToMap(service["polling"]); ok {
 			serviceMap["polling"] = polling
 		}
-	
-		if importTags,ok:=singleListToMap(service["import_tags"]);ok{
+
+		if importTags, ok := singleListToMap(service["import_tags"]); ok {
 			tags := importTags
 			tags["excludedKeys"] = tags["excluded_keys"]
 			delete(tags, "excluded_keys")

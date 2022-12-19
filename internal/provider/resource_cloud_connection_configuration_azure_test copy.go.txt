@@ -1643,7 +1643,6 @@ func generateStepForUpdatedAttrConnectionConfigurationAzure(rName string, resour
 	valid = searchInObject(resourceConnectionConfigurationAzureTest, "details.resource_groups.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
-		fmt.Println("ARJUN:", v)
 		testSteps = append(testSteps, resource.TestStep{
 			Config: CreateAccConnectionConfigurationAzureUpdatedAttrDetailsResourceGroups(rName, value),
 			Check: resource.ComposeTestCheckFunc(

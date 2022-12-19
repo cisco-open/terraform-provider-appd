@@ -40,6 +40,9 @@ func resourceCloudConnectionConfigurationDelete(ctx context.Context, d *schema.R
 	httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, configurationId).Execute()
 
 	if err != nil {
+		if httpResp.StatusCode == 404 {
+			return nil
+		}
 		return errRespToDiag(err, httpResp)
 	}
 
