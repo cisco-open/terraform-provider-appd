@@ -60,8 +60,12 @@ func Provider() *schema.Provider {
 				Description: "Tenant name of the AppDynamics Platform. This can also be set as the APPDYNAMICS_TENANT_NAME environment variable.",
 			},
 		},
-		ResourcesMap:         map[string]*schema.Resource{},
-		DataSourcesMap:       map[string]*schema.Resource{},
+		ResourcesMap: map[string]*schema.Resource{
+			"appdynamicscloud_connection_azure": resourceCloudConnectionAzure(),
+		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"appdynamicscloud_connection_azure": dataSourceCloudConnectionAzure(),
+		},
 		ConfigureContextFunc: configureClient,
 	}
 }

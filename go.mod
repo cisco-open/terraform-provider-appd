@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/Jeffail/gabs/v2 v2.6.1
-	github.com/aniketk-crest/appdynamicscloud-go-client v0.0.0-20221207100947-08fdd4268275
+	github.com/aniketk-crest/appdynamicscloud-go-client v0.0.0-20221214052642-92230fb3ad10
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 )
 
