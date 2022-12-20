@@ -18,7 +18,7 @@ func resourceCloudConnectionDelete(ctx context.Context, d *schema.ResourceData, 
 	if err != nil && httpResp.StatusCode != 404 {
 		return errRespToDiag(err, httpResp)
 	}
-
+	d.SetId("")
 	return nil
 }
 
@@ -141,7 +141,7 @@ func flattenCloudConnectionConfigurationCommonsDetails(resp *cloudconnectionapi.
 
 	detailsList := make([]interface{}, 0, 1)
 	detailsList = append(detailsList, detailsMap)
-	d.Set("details", detailsList)
+	d.Set("configuration_details", detailsList)
 }
 
 func expandCloudConnectionConfigurationDetailsPolling(v interface{}, d *schema.ResourceData) (cloudconnectionapi.ScheduleInterval, bool) {

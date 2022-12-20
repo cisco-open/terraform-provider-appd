@@ -77,7 +77,15 @@ func appendSchema(a, b map[string]*schema.Schema) map[string]*schema.Schema {
 
 	return c
 }
-
+func appendSchemas(maps ...map[string]*schema.Schema) (result map[string]*schema.Schema) {
+    result = make(map[string]*schema.Schema)
+    for _, m := range maps {
+        for k, v := range m {
+            result[k] = v
+        }
+    }
+    return result
+}
 func httpRespToMap(resp *http.Response) (map[string]interface{}, bool) {
 	var m map[string]interface{}
 

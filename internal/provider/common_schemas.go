@@ -10,16 +10,25 @@ import (
 
 const serviceEmptyErrorMsg = "At Least one services is required while updating, services cannot be updated as empty."
 
-// The following methods will be used outside of this file
-func getCommonCloudConnectionSchema() map[string]*schema.Schema {
-	return appendSchema(
-		cloudConnectionSchema(),
-		cloudConnectionSchemaExtras())
+
+func getCloudConnectionAzureSchema() map[string]*schema.Schema {
+	return appendSchemas(
+		cloudConnectionCommonSchema(),
+		cloudConnectionCommonSchemaExtras(),
+		cloudConnectionDetailsAzureSchema(),
+		cloudConnectionConfigurationAzureSchema(),
+	)
 }
 
-// The following methods are helper methods to the methods defined
-// above and defines the actual schema
-func cloudConnectionSchema() map[string]*schema.Schema {
+func cloudConnectionConfigurationAWSSchema() map[string]*schema.Schema {
+	return cloudConnectionConfigurationSchema("AWS")
+}
+
+func cloudConnectionConfigurationAzureSchema() map[string]*schema.Schema {
+	return cloudConnectionConfigurationSchema("AZURE")
+}
+
+func cloudConnectionCommonSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"display_name": {
 			Type:        schema.TypeString,
@@ -31,7 +40,7 @@ func cloudConnectionSchema() map[string]*schema.Schema {
 			Description: "Description for this connection or configuration",
 			Optional:    true,
 		},
-
+		
 		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -43,7 +52,7 @@ func cloudConnectionSchema() map[string]*schema.Schema {
 	}
 }
 
-func cloudConnectionSchemaExtras() map[string]*schema.Schema {
+func cloudConnectionCommonSchemaExtras() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"state": {
 			Type:             schema.TypeString,
@@ -67,23 +76,54 @@ func cloudConnectionSchemaExtras() map[string]*schema.Schema {
 			Computed:    true,
 		},
 		"configuration_id": {
-			Type:             schema.TypeString,
-			ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
-			Optional:         true,
+			Type: schema.TypeString,
+			// ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+			Computed: true,
 		},
 	}
 }
 
-func getCloudConnectionConfigurationAWSSchema() map[string]*schema.Schema {
-	return cloudConnectionConfigurationSchema("AWS")
-}
-
-func getCloudConnectionConfigurationAzureSchema() map[string]*schema.Schema {
-	return cloudConnectionConfigurationSchema("AZURE")
+func cloudConnectionDetailsAzureSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"connection_details": {
+			Type:     schema.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"client_id": {
+						Type:             schema.TypeString,
+						ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+						Description:      "Client IDs, also known as Application IDs, are long-term credentials for an Azure user, or account root user. The Client ID is one of three properties needed to authenticate to Azure, the other two being Client Secret and Tenant (Directory) ID",
+						Required:         true,
+					},
+					"client_secret": {
+						Type:        schema.TypeString,
+						Description: "A Client Secret allows an Azure application to provide its identity when requesting an access token. The Client Secret is one of three properties needed to authenticate to Azure, the other two being Client ID (Application ID) and Tenant (Directory) ID",
+						Sensitive:   true,
+						Required:    true,
+					},
+					"tenant_id": {
+						Type:             schema.TypeString,
+						ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+						Description:      "The Azure AD Tenant (Directory) IDis one of three properties needed to authenticate to Azure. The other two are Client Secret and Client ID (Application ID).",
+						Required:         true,
+						ForceNew:         true,
+					},
+					"subscription_id": {
+						Type:             schema.TypeString,
+						ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+						Description:      "Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.",
+						Required:         true,
+						ForceNew:         true,
+					},
+				},
+			},
+		},
+	}
 }
 
 func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Schema {
-	rootSchema := cloudConnectionSchema()
 	detailsSchema := cloudConnectionConfigurationDetails()
 	servicesSchema := cloudConnectionConfigurationDetailsServices()
 
@@ -123,24 +163,27 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 		}
 	}
 
-	rootSchema["details"] = &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: detailsSchema,
+	return map[string]*schema.Schema{
+		"configuration_details": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: detailsSchema,
+			},
+		},
+		"configuration_details_service_default": {
+			Type:        schema.TypeBool,
+			Description: "Whether default services are present in configuration details",
+			Computed:    true,
 		},
 	}
-
-	rootSchema["details_service_default"] = &schema.Schema{
-		Type:        schema.TypeBool,
-		Description: "Whether default services are present in details",
-		Computed:    true,
-	}
-	return rootSchema
 }
 
+func cloudConnectionConfigurationDetailsServices() map[string]*schema.Schema {
+	return cloudConnectionConfigurationDetails()
+}
 func cloudConnectionConfigurationDetails() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"polling": {
@@ -204,10 +247,6 @@ func cloudConnectionConfigurationDetails() map[string]*schema.Schema {
 	}
 }
 
-func cloudConnectionConfigurationDetailsServices() map[string]*schema.Schema {
-	return cloudConnectionConfigurationDetails()
-}
-
 func calculateHashStringWithPolling(val interface{}) int {
 	if val == nil {
 		return 0
@@ -235,7 +274,7 @@ func calculateHashStringWithPolling(val interface{}) int {
 }
 
 func importTagsSuppressFunc(k, oldValue, newValue string, d *schema.ResourceData) bool {
-	detailsOld, _ := d.GetChange("details")
+	detailsOld, _ := d.GetChange("configuration_details")
 	if len(detailsOld.([]interface{})) > 0 {
 		detailsMap := detailsOld.([]interface{})[0].(map[string]interface{})
 		importTags := detailsMap["import_tags"].([]interface{})
@@ -247,7 +286,7 @@ func importTagsSuppressFunc(k, oldValue, newValue string, d *schema.ResourceData
 			previousWasEmpty = true
 		}
 
-		if k == "details.0.import_tags.#" && oldValue == "1" && newValue == "0" && previousWasEmpty {
+		if k == "configuration_details.0.import_tags.#" && oldValue == "1" && newValue == "0" && previousWasEmpty {
 			return true
 		}
 	}
@@ -255,15 +294,15 @@ func importTagsSuppressFunc(k, oldValue, newValue string, d *schema.ResourceData
 }
 func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface{}) error {
 	var length int
-	if len(rd.GetRawConfig().GetAttr("details").AsValueSlice()) > 0 {
-		length = rd.GetRawConfig().GetAttr("details").AsValueSlice()[0].GetAttr("services").AsValueSet().Length()
+	if len(rd.GetRawConfig().GetAttr("configuration_details").AsValueSlice()) > 0 {
+		length = rd.GetRawConfig().GetAttr("configuration_details").AsValueSlice()[0].GetAttr("services").AsValueSet().Length()
 	}
 
-	val, exist := rd.GetOkExists("details_service_default")
+	val, exist := rd.GetOkExists("configuration_details_service_default")
 	if !exist && length == 0 {
-		rd.SetNew("details_service_default", true)
+		rd.SetNew("configuration_details_service_default", true)
 	} else if exist && length > 0 {
-		rd.SetNew("details_service_default", false)
+		rd.SetNew("configuration_details_service_default", false)
 	} else if length == 0 && exist == true && val == false {
 		return fmt.Errorf(serviceEmptyErrorMsg)
 	}

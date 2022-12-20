@@ -62,12 +62,13 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"appdynamicscloud_connection_azure":               resourceCloudConnectionAzure(),
-			"appdynamicscloud_connection_configuration_azure": resourceCloudConnectionConfigurationAzure(),
+			// "appdynamicscloud_connection_configuration_azure": resourceCloudConnectionConfigurationAzure(),
+			
 		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"appdynamicscloud_connection_azure":               dataSourceCloudConnectionAzure(),
-			"appdynamicscloud_connection_configuration_azure": dataSourceCloudConnectionConfigurationAzure(),
-		},
+		// DataSourcesMap: map[string]*schema.Resource{
+		// 	"appdynamicscloud_connection_azure":               dataSourceCloudConnectionAzure(),
+		// 	"appdynamicscloud_connection_configuration_azure": dataSourceCloudConnectionConfigurationAzure(),
+		// },
 		ConfigureContextFunc: configureClient,
 	}
 }
