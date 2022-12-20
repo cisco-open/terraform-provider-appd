@@ -1,252 +1,400 @@
 package provider
 
-// import (
-// 	"context"
-// 	"fmt"
+import (
+	"context"
 
-// 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
+	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
 
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-// 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-// )
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
 
-// func resourceCloudConnectionAzure() *schema.Resource {
+func resourceCloudConnectionAzure() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: resourceCloudConnectionAzureCreate,
+		ReadContext:   resourceCloudConnectionAzureRead,
+		UpdateContext: resourceCloudConnectionAzureUpdate,
+		DeleteContext: resourceCloudConnectionDelete,
 
-// 	return &schema.Resource{
-// 		CreateContext: resourceCloudConnectionAzureCreate,
-// 		ReadContext:   resourceCloudConnectionAzureRead,
-// 		UpdateContext: resourceCloudConnectionAzureUpdate,
-// 		DeleteContext: resourceCloudConnectionDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceCloudConnectionAzureImport,
+		},
 
-// 		Importer: &schema.ResourceImporter{
-// 			StateContext: resourceCloudConnectionAzureImport,
-// 		},
+		CustomizeDiff: customdiff.All(serviceAtLeastOne),
+		SchemaVersion: 1,
 
-// 		SchemaVersion: 1,
+		Schema: getCloudConnectionAzureSchema(),
+	}
+}
 
-// 		Schema: appendSchema(getCommonCloudConnectionSchema(), map[string]*schema.Schema{
-// 			"details": {
-// 				Type:     schema.TypeList,
-// 				Required: true,
-// 				MaxItems: 1,
-// 				Elem: &schema.Resource{
-// 					Schema: map[string]*schema.Schema{
-// 						"client_id": {
-// 							Type:             schema.TypeString,
-// 							ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
-// 							Description:      "Client IDs, also known as Application IDs, are long-term credentials for an Azure user, or account root user. The Client ID is one of three properties needed to authenticate to Azure, the other two being Client Secret and Tenant (Directory) ID",
-// 							Required:         true,
-// 						},
-// 						"client_secret": {
-// 							Type:        schema.TypeString,
-// 							Description: "A Client Secret allows an Azure application to provide its identity when requesting an access token. The Client Secret is one of three properties needed to authenticate to Azure, the other two being Client ID (Application ID) and Tenant (Directory) ID",
-// 							Sensitive:   true,
-// 							Required:    true,
-// 						},
-// 						"tenant_id": {
-// 							Type:             schema.TypeString,
-// 							ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
-// 							Description:      "The Azure AD Tenant (Directory) IDis one of three properties needed to authenticate to Azure. The other two are Client Secret and Client ID (Application ID).",
-// 							Required:         true,
-// 							ForceNew:         true,
-// 						},
-// 						"subscription_id": {
-// 							Type:             schema.TypeString,
-// 							ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
-// 							Description:      "Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.",
-// 							Required:         true,
-// 							ForceNew:         true,
-// 						},
-// 					},
-// 				},
-// 			},
-// 		}),
-// 	}
-// }
+// ====================================IMPORT====================================
 
-// func resourceCloudConnectionAzureImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-// 	myctx, _, apiClient := initializeCloudConnectionClient(m)
+func resourceCloudConnectionAzureImport(d *schema.ResourceData, i interface{}) ([]*schema.ResourceData, error) {
+	connectionId := d.Get("connection_id").(string)
 
-// 	connectionId := d.Id()
+	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
-// 	resp, _, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	respConnection, _, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
+	if err != nil {
+		d.SetId("")
+		return nil, err
+	}
 
-// 	d.Set("details", flattenCloudConnectionAzureDetails(resp, d))
+	d.Set("connection_details", flattenCloudConnectionAzureDetails(respConnection, d))
 
-// 	flattenCloudConnectionCommons(resp, d)
+	flattenCloudConnectionCommons(respConnection, d)
 
-// 	return []*schema.ResourceData{d}, nil
-// }
+	configurationId := respConnection.ConfigurationId
 
-// func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	myctx, _, apiClient := initializeCloudConnectionClient(m)
+	respConfiguration, _, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
+	if err != nil {
+		d.SetId("")
+		return nil, err
+	}
+	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "azure")
 
-// 	connectionRequest := cloudconnectionapi.ConnectionRequest{}
-// 	connectionRequest.SetType(cloudconnectionapi.ProviderType(cloudconnectionapi.AZURE))
+	return []*schema.ResourceData{d}, nil
+}
 
-// 	err := checkStateConfiguration(ctx, d, m)
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
+// ====================================CREATE======================================
+func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
-// 	if v, ok := d.GetOk("display_name"); ok {
-// 		connectionRequest.SetDisplayName(v.(string))
-// 	}
+	connectionRequest := cloudconnectionapi.ConnectionRequest{}
+	connectionRequest.SetType(cloudconnectionapi.ProviderType(cloudconnectionapi.AZURE))
 
-// 	if v, ok := d.GetOk("description"); ok {
-// 		connectionRequest.SetDescription(v.(string))
-// 	}
+	azureConfiguration := cloudconnectionapi.AzureConfiguration{}
+	azureConfiguration.BaseEntity.BaseEntityAllOf.SetType(cloudconnectionapi.ProviderType(cloudconnectionapi.AZURE))
 
-// 	if v, ok := d.GetOk("state"); ok {
-// 		connectionRequest.SetState(v.(string))
-// 	}
+	if v, ok := d.GetOk("display_name"); ok {
+		connectionRequest.SetDisplayName(v.(string))
+		azureConfiguration.BaseEntity.SetDisplayName(v.(string))
+	}
 
-// 	if v, ok := d.GetOk("configuration_id"); ok {
-// 		connectionRequest.SetConfigurationId(v.(string))
-// 	}
+	if v, ok := d.GetOk("description"); ok {
+		connectionRequest.SetDescription(v.(string))
+		azureConfiguration.BaseEntity.SetDescription(v.(string))
+	}
 
-// 	if v, ok := d.GetOk("details"); ok {
-// 		connectionRequestDetails := expandCloudConnectionAzureDetails(v, d)
-// 		connectionRequest.SetDetails(connectionRequestDetails)
-// 	}
+	if v, ok := d.GetOk("state"); ok {
+		connectionRequest.SetState(v.(string))
+	}
 
-// 	resp, httpResp, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
-// 	if err != nil {
-// 		return errRespToDiag(err, httpResp)
-// 	}
+	if v, ok := d.GetOk("connection_details"); ok {
+		azureConnectionDetails := expandCloudConnectionAzureDetails(v, d)
+		connectionRequest.SetDetails(azureConnectionDetails)
+	}
 
-// 	d.SetId(resp.Id)
+	if v, ok := d.GetOk("configuration_details"); ok {
+		azureConnectionConfigurationDetails := expandCloudConnectionConfigurationAzureCreateDetails(v, d)
+		azureConfiguration.SetDetails(azureConnectionConfigurationDetails)
+	} else {
+		//Create Default Details with default services.
+		azureConfiguration.SetDetails(cloudconnectionapi.AzureConfigurationDetails{})
+	}
 
-// 	return resourceCloudConnectionAzureRead(ctx, d, m)
-// }
+	// Create a configuration
 
-// func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	myctx, _, apiClient := initializeCloudConnectionClient(m)
+	configuration := cloudconnectionapi.AzureConfigurationAsConfiguration(&azureConfiguration)
 
-// 	connectionId := d.Id()
+	respConfiguration, httpRespConfiguration, err := apiClient.ConfigurationsApi.CreateConfiguration(myctx).Configuration(configuration).Execute()
+	if err != nil {
+		return errRespToDiag(err, httpRespConfiguration)
+	}
 
-// 	resp, httpResp, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
-// 	if err != nil {
-// 		if httpResp.StatusCode == 404 {
-// 			d.SetId("")
-// 			return nil
-// 		}
-// 		return errRespToDiag(err, httpResp)
-// 	}
+	d.Set("configuration_id", respConfiguration.Id)
 
-// 	d.Set("details", flattenCloudConnectionAzureDetails(resp, d))
+	// Create a connection
+	if v, ok := d.GetOk("configuration_id"); ok {
+		connectionRequest.SetConfigurationId(v.(string))
+	}
 
-// 	flattenCloudConnectionCommons(resp, d)
+	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
+	if err != nil {
+		return errRespToDiag(err, httpRespConnection)
+	}
 
-// 	return nil
-// }
+	d.SetId(respConnection.Id)
 
-// func resourceCloudConnectionAzureUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	myctx, _, apiClient := initializeCloudConnectionClient(m)
+	return resourceCloudConnectionAzureRead(ctx, d, m)
+}
 
-// 	connectionUpdate := cloudconnectionapi.ConnectionUpdate{}
+func expandCloudConnectionAzureDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.ConnectionRequestDetails {
+	connectionRequestDetails := cloudconnectionapi.ConnectionRequestDetails{}
 
-// 	err := checkStateConfiguration(ctx, d, m)
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
+	details, _ := singleListToMap(v)
 
-// 	if d.HasChange("display_name") {
-// 		connectionUpdate.SetDisplayName(d.Get("display_name").(string))
-// 	}
+	clientId := details["client_id"].(string)
+	clientSecret := details["client_secret"].(string)
+	tenantId := details["tenant_id"].(string)
+	subscriptionId := details["subscription_id"].(string)
 
-// 	if d.HasChange("description") {
-// 		connectionUpdate.SetDescription(d.Get("description").(string))
-// 	}
+	connectionRequestDetails.AzureDetails = cloudconnectionapi.NewAzureDetails(clientId, clientSecret, tenantId, subscriptionId)
 
-// 	if d.HasChange("configuration_id") {
-// 		connectionUpdate.SetConfigurationId(d.Get("configuration_id").(string))
-// 	}
+	return connectionRequestDetails
+}
 
-// 	if d.HasChange("state") {
-// 		connectionUpdate.SetState(d.Get("state").(string))
-// 	}
+func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.AzureConfigurationDetails {
+	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
-// 	if d.HasChange("details") {
-// 		connectionUpdateDetails, err := expandCloudConnectionAzureUpdateDetails(d.Get("details"), d)
-// 		if err != nil {
-// 			return diag.FromErr(err)
-// 		}
+	details, _ := singleListToMap(v)
+	regions := details["regions"].([]interface{})
+	tagFilter := details["tag_filter"].(string)
+	resourceGroups := details["resource_groups"].([]interface{})
 
-// 		connectionUpdate.SetDetails(connectionUpdateDetails)
-// 	}
+	services := details["services"].(*schema.Set).List()
+	servicesList := make([]map[string]interface{}, 0, len(services))
+	for _, v := range services {
+		service := v.(map[string]interface{})
+		serviceMap := make(map[string]interface{})
+		serviceMap["name"] = service["name"]
 
-// 	resp, httpResp, err := apiClient.ConnectionsApi.UpdateConnection(myctx, d.Id()).ConnectionUpdate(connectionUpdate).Execute()
-// 	if err != nil {
-// 		return errRespToDiag(err, httpResp)
-// 	}
+		if service["tag_filter"].(string) != "" {
+			serviceMap["tagFilter"] = service["tag_filter"]
+		}
 
-// 	d.SetId(resp.Id)
+		if polling, ok := singleListToMap(service["polling"]); ok {
+			serviceMap["polling"] = polling
+		}
 
-// 	return resourceCloudConnectionAzureRead(ctx, d, m)
-// }
+		if importTags, ok := singleListToMap(service["import_tags"]); ok {
+			tags := importTags
+			tags["excludedKeys"] = tags["excluded_keys"]
+			delete(tags, "excluded_keys")
+			serviceMap["importTags"] = tags
+		}
 
-// func expandCloudConnectionAzureDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.ConnectionRequestDetails {
-// 	connectionRequestDetails := cloudconnectionapi.ConnectionRequestDetails{}
+		servicesList = append(servicesList, serviceMap)
+	}
 
-// 	details, _ := singleListToMap(v)
+	if len(regions) > 0 {
+		azureConfigurationDetails.SetRegions(toSliceString(regions))
+	}
 
-// 	clientId := details["client_id"].(string)
-// 	clientSecret := details["client_secret"].(string)
-// 	tenantId := details["tenant_id"].(string)
-// 	subscriptionId := details["subscription_id"].(string)
+	if len(resourceGroups) > 0 {
+		azureConfigurationDetails.SetResourceGroups(toSliceString(resourceGroups))
+	}
 
-// 	connectionRequestDetails.AzureDetails = cloudconnectionapi.NewAzureDetails(clientId, clientSecret, tenantId, subscriptionId)
+	if len(servicesList) > 0 {
+		azureConfigurationDetails.SetServices(servicesList)
+	}
 
-// 	return connectionRequestDetails
-// }
+	if polling, ok := expandCloudConnectionConfigurationDetailsPolling(details, d); ok {
+		azureConfigurationDetails.SetPolling(polling)
+	}
 
-// func expandCloudConnectionAzureUpdateDetails(v interface{}, d *schema.ResourceData) (cloudconnectionapi.ConnectionUpdateDetails, error) {
-// 	connectionDetails := expandCloudConnectionAzureDetails(v, d).AzureDetails
+	if importTags, ok := expandCloudConnectionConfigurationDetailsImportTags(details, d); ok {
+		azureConfigurationDetails.SetImportTags(importTags)
+	}
 
-// 	connectionUpdateDetails := cloudconnectionapi.ConnectionUpdateDetailsOneOf2{}
-// 	connectionUpdateDetails.SetClientId(connectionDetails.ClientId)
-// 	connectionUpdateDetails.SetClientSecret(connectionDetails.ClientSecret)
+	if tagFilter != "" {
+		azureConfigurationDetails.SetTagFilter(tagFilter)
+	}
 
-// 	updateDetails := cloudconnectionapi.ConnectionUpdateDetailsOneOf2AsConnectionUpdateDetails(&connectionUpdateDetails)
-// 	return updateDetails, nil
-// }
+	return azureConfigurationDetails
+}
 
-// func flattenCloudConnectionAzureDetails(resp *cloudconnectionapi.ConnectionResponse, d *schema.ResourceData) interface{} {
-// 	var clientSecret string = ""
+// ====================================READ======================================
 
-// 	// For datasource, if details block does not exists
-// 	// set client secret as recieved from response.
-// 	if v, ok := d.GetOk("details"); ok {
-// 		details, _ := singleListToMap(v)
-// 		clientSecret = details["client_secret"].(string)
-// 	} else {
-// 		clientSecret = resp.GetDetails().AzureDetails.ClientSecret
-// 	}
+func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
-// 	detailsList := []interface{}{}
-// 	detailsList = append(detailsList, map[string]interface{}{
-// 		"client_id":       resp.GetDetails().AzureDetails.ClientId,
-// 		"client_secret":   clientSecret,
-// 		"tenant_id":       resp.GetDetails().AzureDetails.TenantId,
-// 		"subscription_id": resp.GetDetails().AzureDetails.SubscriptionId,
-// 	})
+	connectionId := d.Id()
 
-// 	return detailsList
-// }
+	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
+	if err != nil {
+		if httpRespConnection.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+		return errRespToDiag(err, httpRespConnection)
+	}
 
-// func checkStateConfiguration(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
-// 	valueState, isPresentState := d.GetOk("state")
-// 	_, isPresentConfigurationId := d.GetOk("configuration_id")
+	d.Set("connection_details", flattenCloudConnectionAzureDetails(respConnection, d))
 
-// 	// State cannot be specified without configuration id
-// 	if !isPresentConfigurationId && isPresentState && (valueState == "ACTIVE" || valueState == "INACTIVE") {
-// 		return fmt.Errorf("the configuration ID must be provided to assign a connection state")
-// 	}
+	flattenCloudConnectionCommons(respConnection, d)
 
-// 	return nil
-// }
+	configurationId := respConnection.ConfigurationId
+
+	respConfiguration, httpRespConfiguration, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
+	if err != nil {
+		if httpRespConfiguration.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+		return errRespToDiag(err, httpRespConfiguration)
+	}
+	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "azure")
+
+	return nil
+}
+
+func flattenCloudConnectionAzureDetails(resp *cloudconnectionapi.ConnectionResponse, d *schema.ResourceData) interface{} {
+	var clientSecret string = ""
+
+	// For datasource, if details block does not exists
+	// set client secret as recieved from response.
+	if v, ok := d.GetOk("connection_details"); ok {
+		details, _ := singleListToMap(v)
+		clientSecret = details["client_secret"].(string)
+	} else {
+		clientSecret = resp.GetDetails().AzureDetails.ClientSecret
+	}
+
+	detailsList := []interface{}{}
+	detailsList = append(detailsList, map[string]interface{}{
+		"client_id":       resp.GetDetails().AzureDetails.ClientId,
+		"client_secret":   clientSecret,
+		"tenant_id":       resp.GetDetails().AzureDetails.TenantId,
+		"subscription_id": resp.GetDetails().AzureDetails.SubscriptionId,
+	})
+
+	return detailsList
+}
+
+// ====================================UPDATE======================================
+
+func resourceCloudConnectionAzureUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	myctx, _, apiClient := initializeCloudConnectionClient(m)
+
+	azureConnectionUpdate := cloudconnectionapi.ConnectionUpdate{}
+	azureConfigurationUpdate := cloudconnectionapi.ConfigurationUpdate{}
+
+	updateConfigurationFlag := false
+
+	if d.HasChange("display_name") {
+		updateConfigurationFlag = true
+		azureConnectionUpdate.SetDisplayName(d.Get("display_name").(string))
+		azureConfigurationUpdate.SetDisplayName(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("description") {
+		updateConfigurationFlag = true
+		azureConnectionUpdate.SetDescription(d.Get("description").(string))
+		azureConfigurationUpdate.SetDescription(d.Get("description").(string))
+	}
+
+	if d.HasChange("configuration_details") {
+		updateConfigurationFlag = true
+		connectionConfigurationUpdateDetails := expandCloudConnectionConfigurationAzureUpdateDetails(d.Get("configuration_details"), d)
+
+		azureConfigurationUpdate.SetDetails(connectionConfigurationUpdateDetails)
+	}
+
+	if updateConfigurationFlag {
+		resp, httpResp, err := apiClient.ConfigurationsApi.UpdateConfiguration(myctx, d.Id()).ConfigurationUpdate(azureConfigurationUpdate).Execute()
+		if err != nil {
+			return errRespToDiag(err, httpResp)
+		}
+
+		d.Set("configuration_id", resp.Id)
+	}
+
+	azureConnectionUpdate.SetConfigurationId(d.Get("configuration_id").(string))
+
+	if d.HasChange("state") {
+		azureConnectionUpdate.SetState(d.Get("state").(string))
+	}
+
+	if d.HasChange("connection_details") {
+		connectionUpdateDetails, err := expandCloudConnectionAzureUpdateDetails(d.Get("connection_details"), d)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		azureConnectionUpdate.SetDetails(connectionUpdateDetails)
+	}
+
+	resp, httpResp, err := apiClient.ConnectionsApi.UpdateConnection(myctx, d.Id()).ConnectionUpdate(azureConnectionUpdate).Execute()
+	if err != nil {
+		return errRespToDiag(err, httpResp)
+	}
+
+	d.SetId(resp.Id)
+
+	return resourceCloudConnectionAzureRead(ctx, d, m)
+}
+
+func expandCloudConnectionAzureUpdateDetails(v interface{}, d *schema.ResourceData) (cloudconnectionapi.ConnectionUpdateDetails, error) {
+	connectionDetails := expandCloudConnectionAzureDetails(v, d).AzureDetails
+
+	connectionUpdateDetails := cloudconnectionapi.ConnectionUpdateDetailsOneOf2{}
+	connectionUpdateDetails.SetClientId(connectionDetails.ClientId)
+	connectionUpdateDetails.SetClientSecret(connectionDetails.ClientSecret)
+
+	updateDetails := cloudconnectionapi.ConnectionUpdateDetailsOneOf2AsConnectionUpdateDetails(&connectionUpdateDetails)
+	return updateDetails, nil
+}
+
+func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *schema.ResourceData) cloudconnectionapi.ConfigurationUpdateDetails {
+	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
+
+	details, _ := singleListToMap(v)
+	regions := details["regions"].([]interface{})
+	tagFilter := details["tag_filter"].(string)
+	resourceGroups := details["resource_groups"].([]interface{})
+
+	services := details["services"].(*schema.Set).List()
+	servicesList := make([]map[string]interface{}, 0, len(services))
+	for _, v := range services {
+		service := v.(map[string]interface{})
+		serviceMap := make(map[string]interface{})
+		serviceMap["name"] = service["name"]
+		if service["tag_filter"].(string) != "" {
+			serviceMap["tagFilter"] = service["tag_filter"]
+		}
+		if polling, ok := singleListToMap(service["polling"]); ok {
+			serviceMap["polling"] = polling
+		}
+
+		if importTags, ok := singleListToMap(service["import_tags"]); ok {
+			tags := importTags
+			tags["excludedKeys"] = tags["excluded_keys"]
+			delete(tags, "excluded_keys")
+			serviceMap["importTags"] = tags
+		}
+
+		servicesList = append(servicesList, serviceMap)
+	}
+
+	if len(regions) > 0 {
+		azureConfigurationDetails.SetRegions(toSliceString(regions))
+	} else {
+		azureConfigurationDetails.SetRegions(make([]string, 0))
+	}
+
+	if len(resourceGroups) > 0 {
+		azureConfigurationDetails.SetResourceGroups(toSliceString(resourceGroups))
+	} else {
+		azureConfigurationDetails.SetResourceGroups(make([]string, 0))
+	}
+
+	if len(servicesList) > 0 {
+		azureConfigurationDetails.SetServices(servicesList)
+	}
+
+	if polling, ok := expandCloudConnectionConfigurationDetailsPolling(details, d); ok {
+		azureConfigurationDetails.SetPolling(polling)
+	}
+
+	if importTags, ok := expandCloudConnectionConfigurationDetailsImportTags(details, d); ok {
+		azureConfigurationDetails.SetImportTags(importTags)
+	} else {
+		importTags := cloudconnectionapi.ImportTagConfiguration{}
+		importTags.Enabled = true
+		importTags.ExcludedKeys = make([]string, 0)
+		azureConfigurationDetails.SetImportTags(importTags)
+	}
+
+	azureConfigurationDetails.SetTagFilter(tagFilter)
+
+	azureUpdateDetails := azureConfigurationDetailsAsConfigurationUpdateDetails(&azureConfigurationDetails)
+	return azureUpdateDetails
+}
+
+func azureConfigurationDetailsAsConfigurationUpdateDetails(v *cloudconnectionapi.AzureConfigurationDetails) cloudconnectionapi.ConfigurationUpdateDetails {
+	return cloudconnectionapi.ConfigurationUpdateDetails{
+		AzureConfigurationDetails: v,
+	}
+}
