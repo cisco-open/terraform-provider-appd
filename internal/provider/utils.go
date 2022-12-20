@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -36,6 +37,7 @@ func resourceSchemaToDataSourceSchema(resourceSchema map[string]*schema.Schema) 
 
 		switch attributeSchema.Type {
 		case schema.TypeSet:
+			fallthrough
 		case schema.TypeList:
 			if elem, ok := attributeSchema.Elem.(*schema.Resource); ok {
 				dataSourceAttributeSchema.Elem = &schema.Resource{
@@ -135,4 +137,22 @@ func singleListToMap(v interface{}) (map[string]interface{}, bool) {
 	}
 
 	return v.([]interface{})[0].(map[string]interface{}), true
+}
+
+func toSliceString(data []interface{}) []string {
+	s := make([]string, 0)
+	for _, v := range data {
+		s = append(s, fmt.Sprint(v))
+	}
+	return s
+}
+
+func toSliceInterface(data []string) []interface{} {
+	s := make([]interface{}, 0)
+	for _, v := range data {
+		var v1 interface{}
+		v1 = v
+		s = append(s, v1)
+	}
+	return s
 }
