@@ -30,7 +30,7 @@ func resourceCloudConnectionAzure() *schema.Resource {
 
 // ====================================IMPORT====================================
 
-func resourceCloudConnectionAzureImport(d *schema.ResourceData, i interface{}) ([]*schema.ResourceData, error) {
+func resourceCloudConnectionAzureImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	connectionId := d.Get("connection_id").(string)
 
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
