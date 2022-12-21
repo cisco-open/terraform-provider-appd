@@ -283,7 +283,7 @@ func resourceCloudConnectionAzureUpdate(ctx context.Context, d *schema.ResourceD
 	}
 
 	if updateConfigurationFlag {
-		resp, httpResp, err := apiClient.ConfigurationsApi.UpdateConfiguration(myctx, d.Id()).ConfigurationUpdate(azureConfigurationUpdate).Execute()
+		resp, httpResp, err := apiClient.ConfigurationsApi.UpdateConfiguration(myctx, d.Get("configuration_id").(string)).ConfigurationUpdate(azureConfigurationUpdate).Execute()
 		if err != nil {
 			return errRespToDiag(err, httpResp)
 		}
