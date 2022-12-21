@@ -262,7 +262,7 @@ func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface
 	val, exist := rd.GetOkExists("details_service_default")
 	if !exist && length == 0 {
 		rd.SetNew("details_service_default", true)
-	} else if exist && length > 0 {
+	} else if length > 0 {
 		rd.SetNew("details_service_default", false)
 	} else if length == 0 && exist == true && val == false {
 		return fmt.Errorf(serviceEmptyErrorMsg)
