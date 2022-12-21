@@ -1,1 +1,0 @@
-terraform import appdynamicscloud_connection_configuration_azure.example <configuration-id>

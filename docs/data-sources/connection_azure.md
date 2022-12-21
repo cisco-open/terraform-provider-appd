@@ -27,18 +27,80 @@ data "appdynamicscloud_connection_azure" "example" {
 
 ### Read-Only
 
+- `configuration_details` (List of Object) (see [below for nested schema](#nestedatt--configuration_details))
+- `configuration_details_service_default` (Boolean) Whether default services are present in configuration details
 - `configuration_id` (String)
+- `connection_details` (List of Object) (see [below for nested schema](#nestedatt--connection_details))
 - `created_at` (String)
 - `description` (String) Description for this connection or configuration
-- `details` (List of Object) (see [below for nested schema](#nestedatt--details))
 - `display_name` (String) Name of the connection or configuration
 - `id` (String) The ID of this resource.
 - `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
 - `state_message` (String) Connection state message
 - `updated_at` (String)
 
-<a id="nestedatt--details"></a>
-### Nested Schema for `details`
+<a id="nestedatt--configuration_details"></a>
+### Nested Schema for `configuration_details`
+
+Read-Only:
+
+- `import_tags` (List of Object) (see [below for nested schema](#nestedobjatt--configuration_details--import_tags))
+- `polling` (List of Object) (see [below for nested schema](#nestedobjatt--configuration_details--polling))
+- `regions` (List of String)
+- `resource_groups` (List of String)
+- `services` (Set of Object) (see [below for nested schema](#nestedobjatt--configuration_details--services))
+- `tag_filter` (String)
+
+<a id="nestedobjatt--configuration_details--import_tags"></a>
+### Nested Schema for `configuration_details.import_tags`
+
+Read-Only:
+
+- `enabled` (Boolean)
+- `excluded_keys` (List of String)
+
+
+<a id="nestedobjatt--configuration_details--polling"></a>
+### Nested Schema for `configuration_details.polling`
+
+Read-Only:
+
+- `interval` (Number)
+- `unit` (String)
+
+
+<a id="nestedobjatt--configuration_details--services"></a>
+### Nested Schema for `configuration_details.services`
+
+Read-Only:
+
+- `import_tags` (List of Object) (see [below for nested schema](#nestedobjatt--configuration_details--services--import_tags))
+- `name` (String)
+- `polling` (List of Object) (see [below for nested schema](#nestedobjatt--configuration_details--services--polling))
+- `tag_filter` (String)
+
+<a id="nestedobjatt--configuration_details--services--import_tags"></a>
+### Nested Schema for `configuration_details.services.import_tags`
+
+Read-Only:
+
+- `enabled` (Boolean)
+- `excluded_keys` (List of String)
+
+
+<a id="nestedobjatt--configuration_details--services--polling"></a>
+### Nested Schema for `configuration_details.services.polling`
+
+Read-Only:
+
+- `interval` (Number)
+- `unit` (String)
+
+
+
+
+<a id="nestedatt--connection_details"></a>
+### Nested Schema for `connection_details`
 
 Read-Only:
 

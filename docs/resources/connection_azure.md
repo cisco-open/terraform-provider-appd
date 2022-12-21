@@ -14,16 +14,54 @@ description: |-
 
 ```terraform
 resource "appdynamicscloud_connection_azure" "example" {
-  display_name     = "Azure Dev"
-  description      = "Description for this Azure connection"
-  configuration_id = appdynamicscloud_connection_configuration_azure.example.id
-  state            = "ACTIVE"
+  display_name = "Azure Dev"
+  description  = "Description for this Azure connection"
+  state        = "ACTIVE"
 
-  details {
+  connection_details {
     client_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
     client_secret   = ""
     tenant_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
     subscription_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
+  }
+
+  configuration_details {
+    import_tags {
+      enabled       = true
+      excluded_keys = ["key1", "key2"]
+    }
+    tag_filter      = "(tags(env) = 'prod' || tags(env) = 'production')) && tags(project) = 'cloudcollectors'"
+    regions         = ["eastus", "westus"]
+    resource_groups = ["resourceGroup1", "resourceGroup2", "resourceGroup3"]
+    polling {
+      interval = 5
+      unit     = "minute"
+    }
+
+    services {
+      name = "vm"
+      import_tags {
+        enabled       = false
+        excluded_keys = []
+      }
+      tag_filter = "tags(project) = 'cloudcollectors' && tags(jira) IN ['XTNSBL','ACE'] && !(tags(region) IN ['US','IN']) && HAS tags(monitorEnabled) && !(HAS tags(restrictedUse)"
+      polling {
+        interval = 5
+        unit     = "minute"
+      }
+    }
+    services {
+      name = "disk"
+      import_tags {
+        enabled       = true
+        excluded_keys = ["key1", "key2"]
+      }
+      polling {
+        interval = 5
+        unit     = "minute"
+      }
+      tag_filter = "tags(project) = 'cloudcollectors' && tags(jira) IN ['XTNSBL','ACE'] && !(tags(region) IN ['US','IN']) && HAS tags(monitorEnabled) && !(HAS tags(restrictedUse)"
+    }
   }
 }
 ```
@@ -33,24 +71,26 @@ resource "appdynamicscloud_connection_azure" "example" {
 
 ### Required
 
-- `details` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--details))
+- `connection_details` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--connection_details))
 - `display_name` (String) Name of the connection or configuration
 
 ### Optional
 
-- `configuration_id` (String)
+- `configuration_details` (Block List, Max: 1) (see [below for nested schema](#nestedblock--configuration_details))
 - `description` (String) Description for this connection or configuration
 - `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
 
 ### Read-Only
 
+- `configuration_details_service_default` (Boolean) Whether default services are present in configuration details
+- `configuration_id` (String)
 - `created_at` (String)
 - `id` (String) The ID of this resource.
 - `state_message` (String) Connection state message
 - `updated_at` (String)
 
-<a id="nestedblock--details"></a>
-### Nested Schema for `details`
+<a id="nestedblock--connection_details"></a>
+### Nested Schema for `connection_details`
 
 Required:
 
@@ -58,6 +98,67 @@ Required:
 - `client_secret` (String, Sensitive) A Client Secret allows an Azure application to provide its identity when requesting an access token. The Client Secret is one of three properties needed to authenticate to Azure, the other two being Client ID (Application ID) and Tenant (Directory) ID
 - `subscription_id` (String) Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.
 - `tenant_id` (String) The Azure AD Tenant (Directory) IDis one of three properties needed to authenticate to Azure. The other two are Client Secret and Client ID (Application ID).
+
+
+<a id="nestedblock--configuration_details"></a>
+### Nested Schema for `configuration_details`
+
+Optional:
+
+- `import_tags` (Block List, Max: 1) Configuration for importing tags of resources that are being monitored (see [below for nested schema](#nestedblock--configuration_details--import_tags))
+- `polling` (Block List, Max: 1) How often the selected connection is polled for information (see [below for nested schema](#nestedblock--configuration_details--polling))
+- `regions` (List of String) Geographic locations used to fetch metrics
+- `resource_groups` (List of String) Azure Resource groups used to fetch metrics
+- `services` (Block Set) services for which we will fetch metrics (see [below for nested schema](#nestedblock--configuration_details--services))
+- `tag_filter` (String) Expression for filtering resources to be monitored, based on tags. Example: (tags(env) = 'prod' || tags(env) = 'production')) && tags(project) = 'cloudcollectors'
+
+<a id="nestedblock--configuration_details--import_tags"></a>
+### Nested Schema for `configuration_details.import_tags`
+
+Optional:
+
+- `enabled` (Boolean) It is true by default. Tags will be imported for all the resources that are being monitored by default
+- `excluded_keys` (List of String) Array of tag keys that need to be excluded from being imported. It can be set only when enabled is true
+
+
+<a id="nestedblock--configuration_details--polling"></a>
+### Nested Schema for `configuration_details.polling`
+
+Optional:
+
+- `interval` (Number) The default polling interval is five (5) minutes
+- `unit` (String) The unit of polling interval, currently only support 'minute'. Defaults to the same
+
+
+<a id="nestedblock--configuration_details--services"></a>
+### Nested Schema for `configuration_details.services`
+
+Required:
+
+- `name` (String)
+
+Optional:
+
+- `import_tags` (Block List, Max: 1) Configuration for importing tags of resources that are being monitored (see [below for nested schema](#nestedblock--configuration_details--services--import_tags))
+- `polling` (Block List, Max: 1) How often the selected connection is polled for information (see [below for nested schema](#nestedblock--configuration_details--services--polling))
+- `tag_filter` (String) Expression for filtering resources to be monitored, based on tags. Example: (tags(env) = 'prod' || tags(env) = 'production')) && tags(project) = 'cloudcollectors'
+
+<a id="nestedblock--configuration_details--services--import_tags"></a>
+### Nested Schema for `configuration_details.services.import_tags`
+
+Optional:
+
+- `enabled` (Boolean) It is true by default. Tags will be imported for all the resources that are being monitored by default
+- `excluded_keys` (List of String) Array of tag keys that need to be excluded from being imported. It can be set only when enabled is true
+
+
+<a id="nestedblock--configuration_details--services--polling"></a>
+### Nested Schema for `configuration_details.services.polling`
+
+Optional:
+
+- `interval` (Number) The default polling interval is five (5) minutes
+- `unit` (String) The unit of polling interval, currently only support 'minute'. Defaults to the same
 
 ## Import
 
