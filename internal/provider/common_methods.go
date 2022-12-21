@@ -21,7 +21,19 @@ func resourceCloudConnectionDelete(ctx context.Context, d *schema.ResourceData, 
 	d.SetId("")
 	return nil
 }
+func deleteConfiguration(myctx context.Context, id string, apiClient *cloudconnectionapi.APIClient) diag.Diagnostics {
 
+	httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, id).Execute()
+
+	if err != nil {
+		if httpResp.StatusCode == 404 {
+			return nil
+		}
+		return errRespToDiag(err, httpResp)
+	}
+
+	return nil
+}
 func flattenCloudConnectionCommons(resp *cloudconnectionapi.ConnectionResponse, d *schema.ResourceData) {
 	d.SetId(resp.GetId())
 	d.Set("display_name", resp.GetDisplayName())
@@ -33,21 +45,21 @@ func flattenCloudConnectionCommons(resp *cloudconnectionapi.ConnectionResponse, 
 	d.Set("updated_at", utcTimeToString(resp.GetUpdatedAt()))
 }
 
-func resourceCloudConnectionConfigurationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	myctx, _, apiClient := initializeCloudConnectionClient(m)
+// func resourceCloudConnectionConfigurationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+// 	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
-	configurationId := d.Id()
-	httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, configurationId).Execute()
+// 	configurationId := d.Id()
+// 	httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, configurationId).Execute()
 
-	if err != nil {
-		if httpResp.StatusCode == 404 {
-			return nil
-		}
-		return errRespToDiag(err, httpResp)
-	}
+// 	if err != nil {
+// 		if httpResp.StatusCode == 404 {
+// 			return nil
+// 		}
+// 		return errRespToDiag(err, httpResp)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 func flattenCloudConnectionConfigurationCommons(resp *cloudconnectionapi.ConfigurationDetail, d *schema.ResourceData) {
 	d.SetId(resp.GetId())
 	d.Set("display_name", resp.GetDisplayName())

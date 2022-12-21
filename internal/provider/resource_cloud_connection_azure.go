@@ -112,6 +112,7 @@ func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceD
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
 	if err != nil {
+		deleteConfiguration(myctx,respConfiguration.Id,apiClient)
 		return errRespToDiag(err, httpRespConnection)
 	}
 
@@ -220,11 +221,12 @@ func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceDat
 	respConfiguration, httpRespConfiguration, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
 	if err != nil {
 		if httpRespConfiguration.StatusCode == 404 {
-			d.SetId("")
+			d.Set("configuration_id", "")
 			return nil
 		}
 		return errRespToDiag(err, httpRespConfiguration)
 	}
+	d.Set("configuration_id", configurationId)
 	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "azure")
 
 	return nil
