@@ -31,13 +31,12 @@ func resourceCloudConnectionAzure() *schema.Resource {
 // ====================================IMPORT====================================
 
 func resourceCloudConnectionAzureImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	connectionId := d.Get("connection_id").(string)
-
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
+
+	connectionId := d.Id()
 
 	respConnection, _, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
 	if err != nil {
-		d.SetId("")
 		return nil, err
 	}
 
@@ -47,9 +46,10 @@ func resourceCloudConnectionAzureImport(d *schema.ResourceData, m interface{}) (
 
 	configurationId := respConnection.ConfigurationId
 
+	d.Set("configuration_id", configurationId)
+
 	respConfiguration, _, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
 	if err != nil {
-		d.SetId("")
 		return nil, err
 	}
 	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "azure")

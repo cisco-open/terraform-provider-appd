@@ -10,7 +10,6 @@ import (
 
 const serviceEmptyErrorMsg = "At Least one services is required while updating, services cannot be updated as empty."
 
-
 func getCloudConnectionAzureSchema() map[string]*schema.Schema {
 	return appendSchemas(
 		cloudConnectionCommonSchema(),
@@ -40,7 +39,7 @@ func cloudConnectionCommonSchema() map[string]*schema.Schema {
 			Description: "Description for this connection or configuration",
 			Optional:    true,
 		},
-		
+
 		"created_at": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -301,7 +300,7 @@ func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface
 	val, exist := rd.GetOkExists("configuration_details_service_default")
 	if !exist && length == 0 {
 		rd.SetNew("configuration_details_service_default", true)
-	} else if exist && length > 0 {
+	} else if length > 0 {
 		rd.SetNew("configuration_details_service_default", false)
 	} else if length == 0 && exist == true && val == false {
 		return fmt.Errorf(serviceEmptyErrorMsg)
