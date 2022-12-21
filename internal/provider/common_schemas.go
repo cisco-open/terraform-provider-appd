@@ -18,7 +18,14 @@ func getCloudConnectionAzureSchema() map[string]*schema.Schema {
 		cloudConnectionConfigurationAzureSchema(),
 	)
 }
-
+func getCloudConnectionAWSSchema() map[string]*schema.Schema {
+	return appendSchemas(
+		cloudConnectionCommonSchema(),
+		cloudConnectionCommonSchemaExtras(),
+		cloudConnectionDetailsAWSSchema(),
+		cloudConnectionConfigurationAWSSchema(),
+	)
+}
 func cloudConnectionConfigurationAWSSchema() map[string]*schema.Schema {
 	return cloudConnectionConfigurationSchema("AWS")
 }
@@ -115,6 +122,65 @@ func cloudConnectionDetailsAzureSchema() map[string]*schema.Schema {
 						Description:      "Specify a GUID Subscription ID to monitor. If monitoring all subscriptions, do not specify a Subscription ID.",
 						Required:         true,
 						ForceNew:         true,
+					},
+				},
+			},
+		},
+	}
+}
+func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"connection_details": {
+			Type:     schema.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"access_type": {
+						Type:         schema.TypeString,
+						Description:  "Connection type discriminator",
+						ValidateFunc: validation.StringInSlice([]string{"role_delegation", "access_key"}, false),
+						Required:     true,
+						ForceNew:     true,
+					},
+					"access_key_id": {
+						Type:          schema.TypeString,
+						Description:   "AWS Access keys are long-term credentials for an AWS IAM user, or account root user. The access key ID is one of two access keys needed to authenticate to AWS. The other is a secret access key. You need access keys to make programmatic calls using the AWS CLI, AWS Tools, or PowerShell.",
+						Optional:      true,
+						ConflictsWith: []string{"connection_details.0.account_id"},
+					},
+					"secret_access_key": {
+						Type:          schema.TypeString,
+						Description:   "The secret access key is one of two access keys needed to authenticate to AWS. The other is an access key ID. The secret access key is only available once, when you create it. Download the generated secret access key and save in a secure location. If the secret access key is lost or deleted, you must create a new one. You need access keys to make programmatic calls using the AWS CLI, AWS Tools, or PowerShell.",
+						Optional:      true,
+						Sensitive:     true,
+						ConflictsWith: []string{"connection_details.0.account_id"},
+					},
+
+					// computed for aws access_key
+					"account_id": {
+						Type:     schema.TypeString,
+						Optional: true,
+						Computed: true,
+						ForceNew: true,
+					},
+
+					// computed for access_type role_delegation
+					"appdynamics_aws_account_id": {
+						Type: schema.TypeString,
+						Description: `AppDynamics AWS Account ID. Delegates a user to an Identity Access Management (IAM) role in AWS. The AWS IAM role provides AppDynamics access to resources.
+						https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html`,
+						Computed: true,
+					},
+					"external_id": {
+						Type: schema.TypeString,
+						Description: `Returns an external ID for AWS role delegation connections 
+						https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html`,
+						Computed: true,
+					},
+					"role_name": {
+						Type:     schema.TypeString,
+						Computed: true,
 					},
 				},
 			},
