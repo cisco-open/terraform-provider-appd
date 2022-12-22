@@ -112,6 +112,12 @@ func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceD
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
 	if err != nil {
+		// Delete configuration created when error obtained while creating connection.
+		httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, respConfiguration.Id).Execute()
+		if err != nil {
+			return errRespToDiag(err, httpResp)
+		}
+
 		return errRespToDiag(err, httpRespConnection)
 	}
 
