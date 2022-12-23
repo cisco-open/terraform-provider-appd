@@ -66,7 +66,7 @@ func cloudConnectionCommonSchemaExtras() map[string]*schema.Schema {
 				// Thus, if it is created with inactive state at the
 				// time of creation, it will go into configured state,
 				// which is technically the same hence suppressing diff.
-				return oldValue == "CONFIGURED" && newValue == "INACTIVE"
+				return (oldValue == "CONFIGURED" && newValue == "INACTIVE") || (oldValue == "WARNING" && newValue == "ACTIVE")
 			},
 		},
 		"state_message": {

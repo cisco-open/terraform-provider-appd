@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
 
@@ -206,6 +207,7 @@ func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *sche
 func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
+	diags := diag.Diagnostics{}
 	connectionId := d.Id()
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
@@ -221,19 +223,30 @@ func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceDat
 
 	flattenCloudConnectionCommons(respConnection, d)
 
+	if !((d.Get("state") == "ACTIVE") || (d.Get("state") == "INACTIVE") || (d.Get("state") == "CONFIGURED")) {
+		diagWarn := diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "State Warning",
+			Detail:   fmt.Sprintf("Current State: %v\nState Message: %v", d.Get("state"), d.Get("state_message")),
+		}
+
+		diags = append(diags, diagWarn)
+	}
+
 	configurationId := respConnection.ConfigurationId
 
 	respConfiguration, httpRespConfiguration, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
 	if err != nil {
 		if httpRespConfiguration.StatusCode == 404 {
-			d.SetId("")
+			d.Set("configuration_id", "")
 			return nil
 		}
 		return errRespToDiag(err, httpRespConfiguration)
 	}
+	d.Set("configuration_id", configurationId)
 	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "azure")
 
-	return nil
+	return diags
 }
 
 func flattenCloudConnectionAzureDetails(resp *cloudconnectionapi.ConnectionResponse, d *schema.ResourceData) interface{} {
