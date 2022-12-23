@@ -78,12 +78,14 @@ func Provider() *schema.Provider {
 			"login_mode": {
 				Type:             schema.TypeString,
 				Required:         true,
+				Description:      "Mode of login. Possible values are: service_principal, browser and headless.",
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"browser", "headless", "service_principal"}, true)),
 			},
 
 			"save_token": {
-				Type:     schema.TypeBool,
-				Required: true,
+				Type:        schema.TypeBool,
+				Description: "Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal.",
+				Required:    true,
 			},
 		},
 		ResourcesMap:         map[string]*schema.Resource{},

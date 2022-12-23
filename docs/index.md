@@ -17,6 +17,8 @@ provider "appdynamicscloud" {
   client_id     = "xxxxxxxxxxxxxxxxx"
   client_secret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   tenant_name   = "tenant-name"
+  login_mode    = "service_principal"
+  save_token    = true
 }
 ```
 
@@ -25,6 +27,13 @@ provider "appdynamicscloud" {
 
 ### Required
 
-- `client_id` (String) ClientID of the AppDynamics API Client, this can also be set as the APPDYNAMICS_CLIENT_ID environment variable.
-- `client_secret` (String, Sensitive) ClientSecret of the AppDynamics API Client. This can also be set as the APPDYNAMICS_CLIENT_SECRET environment variable.
+- `login_mode` (String) Mode of login. Possible values are: service_principal, browser and headless.
+- `save_token` (Boolean) Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal.
 - `tenant_name` (String) Tenant name of the AppDynamics Platform. This can also be set as the APPDYNAMICS_TENANT_NAME environment variable.
+
+### Optional
+
+- `client_id` (String) ClientID of the AppDynamics API Client, this can also be set as the APPDYNAMICS_CLIENT_ID environment variable. To be used with login mode service_principal.
+- `client_secret` (String, Sensitive) ClientSecret of the AppDynamics API Client. This can also be set as the APPDYNAMICS_CLIENT_SECRET environment variable. To be used with login mode service_principal.
+- `password` (String) Password to login to the AppDynamics Platform. This can also be set as the APPDYNAMICS_PASSWORD environment variable. To be used with login mode headless.
+- `username` (String) Username to login to the AppDynamics Platform. This can also be set as the APPDYNAMICS_USERNAME environment variable. To be used with login mode headless.
