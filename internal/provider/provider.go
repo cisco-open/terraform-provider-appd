@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	client "github.com/aniketk-crest/appdynamicscloud-go-client"
+	"github.com/aniketk-crest/terraform-provider-appdynamics/internal/auth"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"golang.org/x/oauth2"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
@@ -42,22 +43,47 @@ func Provider() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"client_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_CLIENT_ID", nil),
-				Description: "ClientID of the AppDynamics API Client, this can also be set as the APPDYNAMICS_CLIENT_ID environment variable.",
+				Description: "ClientID of the AppDynamics API Client, this can also be set as the APPDYNAMICS_CLIENT_ID environment variable. To be used with login mode service_principal.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_CLIENT_SECRET", nil),
-				Description: "ClientSecret of the AppDynamics API Client. This can also be set as the APPDYNAMICS_CLIENT_SECRET environment variable.",
+				Description: "ClientSecret of the AppDynamics API Client. This can also be set as the APPDYNAMICS_CLIENT_SECRET environment variable. To be used with login mode service_principal.",
 			},
 			"tenant_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_TENANT_NAME", nil),
 				Description: "Tenant name of the AppDynamics Platform. This can also be set as the APPDYNAMICS_TENANT_NAME environment variable.",
+			},
+
+			"username": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_USERNAME", nil),
+				Description: "Username to login to the AppDynamics Platform. This can also be set as the APPDYNAMICS_USERNAME environment variable. To be used with login mode headless.",
+			},
+
+			"password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_PASSWORD", nil),
+				Description: "Password to login to the AppDynamics Platform. This can also be set as the APPDYNAMICS_PASSWORD environment variable. To be used with login mode headless.",
+			},
+
+			"login_mode": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"browser", "headless", "service_principal"}, true)),
+			},
+
+			"save_token": {
+				Type:     schema.TypeBool,
+				Required: true,
 			},
 		},
 		ResourcesMap:         map[string]*schema.Resource{},
@@ -66,22 +92,58 @@ func Provider() *schema.Provider {
 	}
 }
 
+var required = map[string][]string{
+	"service_principal": {"client_id", "client_secret"},
+	"headless":          {"username", "password"},
+	"browser":           {},
+}
+
 func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// GET ACCESS TOKEN
-	token, diags := getAccessToken(d)
-	if diags.HasError() {
-		return nil, diags
+	var token string
+	var diags diag.Diagnostics
+
+	loginMode := d.Get("login_mode").(string)
+
+	for _, attribute := range required[loginMode] {
+		v, ok := d.GetOk(attribute)
+		if !ok || v == "" {
+			return nil, diag.Errorf("%v is required with to login with %v", attribute, loginMode)
+		}
+	}
+
+	tenantName := d.Get("tenant_name").(string)
+	tenantId, err := lookupTenantId(tenantName)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	if loginMode == "service_principal" {
+		token, diags = getAccessToken(d)
+		if diags.HasError() {
+			return nil, diags
+		}
+	} else {
+		ctx := context.WithValue(context.Background(), auth.MODE, loginMode)
+		if loginMode == "headless" {
+			ctx = context.WithValue(ctx, auth.USERNAME, d.Get("username"))
+			ctx = context.WithValue(ctx, auth.PASSWORD, d.Get("password"))
+		}
+
+		token, err = auth.Login(tenantName, tenantId, d.Get("save_token").(bool), ctx)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
 	}
 
 	// CONFIGURE API CLIENT
 	configuration := client.NewConfiguration()
 	configuration.Debug = true
 
-	tenantName := d.Get("tenant_name").(string)
 	myctx := context.WithValue(context.Background(), client.ContextServerVariables, map[string]string{
 		"tenant-name": tenantName,
 	})
-	myctx = context.WithValue(myctx, client.ContextAccessToken, token.AccessToken)
+	myctx = context.WithValue(myctx, client.ContextAccessToken, token)
 
 	// TERRAFORM CONFIG
 	config := config{configuration: configuration, ctx: myctx}
@@ -89,7 +151,7 @@ func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, 
 	return config, nil
 }
 
-func getAccessToken(d *schema.ResourceData) (*oauth2.Token, diag.Diagnostics) {
+func getAccessToken(d *schema.ResourceData) (string, diag.Diagnostics) {
 	conf := clientcredentials.Config{}
 
 	conf.ClientID = d.Get("client_id").(string)
@@ -98,7 +160,7 @@ func getAccessToken(d *schema.ResourceData) (*oauth2.Token, diag.Diagnostics) {
 	tenantName := d.Get("tenant_name").(string)
 	tenantId, err := lookupTenantId(tenantName)
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return "", diag.FromErr(err)
 	}
 
 	conf.TokenURL = fmt.Sprintf("https://%s.observe.appdynamics.com/auth/%s/default/oauth2/token", tenantName, tenantId)
@@ -120,10 +182,10 @@ func getAccessToken(d *schema.ResourceData) (*oauth2.Token, diag.Diagnostics) {
 			Detail:   resp["error_description"].(string),
 		}
 
-		return nil, diag.Diagnostics{d}
+		return "", diag.Diagnostics{d}
 	}
 
-	return token, nil
+	return token.AccessToken, nil
 }
 
 func lookupTenantId(tenantName string) (string, error) {

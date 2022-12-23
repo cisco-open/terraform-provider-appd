@@ -12,7 +12,9 @@ require (
 
 require (
 	github.com/Jeffail/gabs/v2 v2.6.1
-	github.com/aniketk-crest/appdynamicscloud-go-client v0.0.0-20221207100947-08fdd4268275
+	github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221222182100-df009aeb3828
+	github.com/chromedp/cdproto v0.0.0-20221126224343-3a0787b8dd28
+	github.com/chromedp/chromedp v0.8.6
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 )
 
@@ -24,7 +26,12 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
+	github.com/chromedp/sysutil v1.0.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -49,6 +56,8 @@ require (
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mitchellh/cli v1.1.5 // indirect
