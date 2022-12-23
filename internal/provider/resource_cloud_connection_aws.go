@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
@@ -113,7 +114,7 @@ func resourceCloudConnectionAWSCreate(ctx context.Context, d *schema.ResourceDat
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
 	if err != nil {
-		deleteConfiguration(myctx,respConfiguration.Id,apiClient)
+		deleteConfiguration(myctx, respConfiguration.Id, apiClient)
 		return errRespToDiag(err, httpRespConnection)
 	}
 
@@ -125,6 +126,7 @@ func resourceCloudConnectionAWSCreate(ctx context.Context, d *schema.ResourceDat
 func resourceCloudConnectionAWSRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
+	diags := diag.Diagnostics{}
 	connectionId := d.Id()
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
@@ -139,21 +141,29 @@ func resourceCloudConnectionAWSRead(ctx context.Context, d *schema.ResourceData,
 	d.Set("connection_details", flattenCloudConnectionAWSDetails(respConnection, d))
 
 	flattenCloudConnectionCommons(respConnection, d)
+	if !((d.Get("state") == "ACTIVE") || (d.Get("state") == "INACTIVE") || (d.Get("state") == "CONFIGURED")) {
+		d := diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "State Warning",
+			Detail:   fmt.Sprintf("Current State:%v\nState Message: %v", d.Get("state"), d.Get("state_message")),
+		}
+		diags = append(diags, d)
+	}
 
 	configurationId := respConnection.ConfigurationId
 
 	respConfiguration, httpRespConfiguration, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
 	if err != nil {
 		if httpRespConfiguration.StatusCode == 404 {
-			d.Set("configuration_id","")
+			d.Set("configuration_id", "")
 			return nil
 		}
 		return errRespToDiag(err, httpRespConfiguration)
 	}
-	d.Set("configuration_id",configurationId)
+	d.Set("configuration_id", configurationId)
 	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "aws")
 
-	return nil
+	return diags
 }
 
 func resourceCloudConnectionAWSUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
