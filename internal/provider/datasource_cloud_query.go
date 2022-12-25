@@ -16,12 +16,12 @@ func dataSourceCloudQuery() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"query": {
 				Type:        schema.TypeString,
-				Description: "Query String",
+				Description: "Query String.",
 				Required:    true,
 			},
 			"response": {
 				Type:        schema.TypeString,
-				Description: "Query Response",
+				Description: "Query Response.",
 				Computed:    true,
 			},
 		},
@@ -43,8 +43,6 @@ func dataSourceCloudQueryRead(ctx context.Context, d *schema.ResourceData, m int
 		log.Fatal(err)
 	}
 	response := string(bytes)
-	// response = strings.Replace(response, "\n", "", -1)
-	// response = strings.Replace(response, "\"", "'", -1)
 	d.SetId(*query.Query)
 	d.Set("response", response)
 	return nil

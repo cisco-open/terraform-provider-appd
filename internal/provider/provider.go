@@ -78,18 +78,22 @@ func Provider() *schema.Provider {
 			"login_mode": {
 				Type:             schema.TypeString,
 				Required:         true,
-				Description:      "Mode of login. Possible values are: service_principal, browser and headless.",
+				DefaultFunc:      schema.EnvDefaultFunc("APPDYNAMICS_LOGIN_MODE", nil),
+				Description:      "Mode of login. Possible values are: service_principal, browser and headless. This can also be set as the APPDYNAMICS_LOGIN_MODE environment variable.",
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"browser", "headless", "service_principal"}, true)),
 			},
 
 			"save_token": {
 				Type:        schema.TypeBool,
-				Description: "Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal.",
+				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_SAVE_TOKEN", nil),
+				Description: "Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal. This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.",
 				Required:    true,
 			},
 		},
-		ResourcesMap:         map[string]*schema.Resource{},
-		DataSourcesMap:       map[string]*schema.Resource{},
+		ResourcesMap: map[string]*schema.Resource{},
+		DataSourcesMap: map[string]*schema.Resource{
+			"appdynamicscloud_query": dataSourceCloudQuery(),
+		},
 		ConfigureContextFunc: configureClient,
 	}
 }
