@@ -127,7 +127,7 @@ func TestAccAppdynamicscloudConnectionAwsAccess_Basic(t *testing.T) {
 	rName := makeTestVariable(acctest.RandString(5))
 	// rOther := makeTestVariable(acctest.RandString(5))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAwsAccessDestroy,
@@ -220,7 +220,7 @@ func TestAccAppdynamicscloudConnectionAwsAccess_Update(t *testing.T) {
 	resourceName := "appdynamicscloud_connection_aws.test"
 	rName := makeTestVariable(acctest.RandString(5))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAwsAccessDestroy,
@@ -239,7 +239,7 @@ func TestAccAppdynamicscloudConnectionAwsAccess_NegativeCases(t *testing.T) {
 	// [TODO]: Add makeTestVariable() to utils.go file
 	rName := makeTestVariable(acctest.RandString(5))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAwsAccessDestroy,
@@ -1476,9 +1476,9 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsPollingUnit(rNam
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
-		searchInObject(resourceConnectionAwsAccessTest, "polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		value,
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
@@ -1671,11 +1671,11 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsImportTagsExclud
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
 		value,
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
@@ -1768,8 +1768,8 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsTagFilter(rName 
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
@@ -1963,20 +1963,20 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesImportTa
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.name.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
 		value,
-		searchInObject(resourceConnectionAwsAccessTest, "services.tag_filter.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.polling.interval.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.polling.unit.valid.0"))
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.unit.valid.0"))
 	return resource
 }
 func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesTagFilter(rName string, value interface{}) string {
@@ -2060,21 +2060,21 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesTagFilte
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.name.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.import_tags.enabled.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.import_tags.excluded_keys.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
 		value,
-		searchInObject(resourceConnectionAwsAccessTest, "services.polling.interval.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.polling.unit.valid.0"))
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.unit.valid.0"))
 	return resource
 }
 
@@ -2254,20 +2254,20 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesPollingU
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.name.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.import_tags.enabled.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.import_tags.excluded_keys.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.import_tags.excluded_keys.valid.1"),
-		searchInObject(resourceConnectionAwsAccessTest, "services.tag_filter.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
 		value)
 	return resource
 }

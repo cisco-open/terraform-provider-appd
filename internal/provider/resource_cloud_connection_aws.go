@@ -177,11 +177,14 @@ func resourceCloudConnectionAWSUpdate(ctx context.Context, d *schema.ResourceDat
 	if d.HasChange("display_name") {
 		updateConfigurationFlag = true
 		awsConnectionUpdate.SetDisplayName(d.Get("display_name").(string))
+		awsConfigurationUpdate.SetDisplayName(d.Get("display_name").(string))
+
 	}
 
 	if d.HasChange("description") {
 		updateConfigurationFlag = true
 		awsConnectionUpdate.SetDescription(d.Get("description").(string))
+		awsConfigurationUpdate.SetDescription(d.Get("description").(string))
 	}
 
 	if d.HasChange("configuration_details") {
@@ -331,7 +334,7 @@ func expandCloudConnectionConfigurationAWSCreateDetails(v interface{}, d *schema
 	awsConfigurationDetails := cloudconnectionapi.AWSConfigurationDetails{}
 
 	details, _ := singleListToMap(v)
-	regions := details["regions"].([]interface{})
+	regions := details["regions"].(*schema.Set).List()
 	tagFilter := details["tag_filter"].(string)
 
 	services := details["services"].(*schema.Set).List()
@@ -386,7 +389,7 @@ func expandCloudConnectionConfigurationAWSUpdateDetails(v interface{}, d *schema
 	awsConfigurationDetails := cloudconnectionapi.AWSConfigurationDetails{}
 
 	details, _ := singleListToMap(v)
-	regions := details["regions"].([]interface{})
+	regions := details["regions"].(*schema.Set).List()
 	tagFilter := details["tag_filter"].(string)
 
 	services := details["services"].(*schema.Set).List()

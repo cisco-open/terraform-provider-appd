@@ -21,3 +21,19 @@ var resourceConnectionAwsAccessSecretMap = map[string]interface{}{
 		},
 	},
 }
+
+var resourceConnectionAwsRoleSecretMap = map[string]interface{}{
+	"connection_details": map[string]interface{}{
+		"access_type": map[string]interface{}{
+			"valid":           []interface{}{"role_delegation"},
+			"invalid":         []interface{}{"rbnigdc04i"},
+			"multiple_valids": []interface{}{"role_delegation"},
+		},
+
+		"account_id": map[string]interface{}{
+			"valid":           []interface{}{"860850072464", "860850072464"},
+			"invalid":         []interface{}{10, 12.43},
+			"multiple_valids": []interface{}{"860850072464", "860850072464"},
+		},
+	},
+}
