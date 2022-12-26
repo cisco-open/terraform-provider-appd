@@ -94,6 +94,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"appdynamicscloud_query":          dataSourceCloudQuery(),
 			"appdynamicscloud_services_azure": dataSourceCloudServicesAzure(),
+			"appdynamicscloud_services_aws":   dataSourceCloudServicesAWS(),
 		},
 		ConfigureContextFunc: configureClient,
 	}
