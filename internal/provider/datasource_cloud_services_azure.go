@@ -14,7 +14,7 @@ func dataSourceCloudServicesAzure() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"services_azure": {
 				Type:        schema.TypeList,
-				Description: "Azure Services",
+				Description: "All supported services for Azure provider.",
 				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
