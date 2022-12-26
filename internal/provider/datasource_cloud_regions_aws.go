@@ -14,7 +14,7 @@ func dataSourceCloudRegionsAWS() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"regions_aws": {
 				Type:        schema.TypeList,
-				Description: "AWS Regions",
+				Description: "All supported hosting regions for the AWS cloud provider",
 				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
