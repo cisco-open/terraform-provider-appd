@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
 
@@ -112,7 +113,12 @@ func resourceCloudConnectionAzureCreate(ctx context.Context, d *schema.ResourceD
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.CreateConnection(myctx).ConnectionRequest(connectionRequest).Execute()
 	if err != nil {
-		deleteConfiguration(myctx,respConfiguration.Id,apiClient)
+		// Delete configuration created when error obtained while creating connection.
+		httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, respConfiguration.Id).Execute()
+		if err != nil {
+			return errRespToDiag(err, httpResp)
+		}
+
 		return errRespToDiag(err, httpRespConnection)
 	}
 
@@ -140,7 +146,7 @@ func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *sche
 	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
 	details, _ := singleListToMap(v)
-	regions := details["regions"].([]interface{})
+	regions := details["regions"].(*schema.Set).List()
 	tagFilter := details["tag_filter"].(string)
 	resourceGroups := details["resource_groups"].([]interface{})
 
@@ -201,6 +207,7 @@ func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *sche
 func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	myctx, _, apiClient := initializeCloudConnectionClient(m)
 
+	diags := diag.Diagnostics{}
 	connectionId := d.Id()
 
 	respConnection, httpRespConnection, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
@@ -216,6 +223,16 @@ func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceDat
 
 	flattenCloudConnectionCommons(respConnection, d)
 
+	if !((d.Get("state") == "ACTIVE") || (d.Get("state") == "INACTIVE") || (d.Get("state") == "CONFIGURED")) {
+		diagWarn := diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "State Warning",
+			Detail:   fmt.Sprintf("Current State: %v\nState Message: %v", d.Get("state"), d.Get("state_message")),
+		}
+
+		diags = append(diags, diagWarn)
+	}
+
 	configurationId := respConnection.ConfigurationId
 
 	respConfiguration, httpRespConfiguration, err := apiClient.ConfigurationsApi.GetConfiguration(myctx, *configurationId).Execute()
@@ -229,7 +246,7 @@ func resourceCloudConnectionAzureRead(ctx context.Context, d *schema.ResourceDat
 	d.Set("configuration_id", configurationId)
 	flattenCloudConnectionConfigurationCommonsDetails(respConfiguration, d, "azure")
 
-	return nil
+	return diags
 }
 
 func flattenCloudConnectionAzureDetails(resp *cloudconnectionapi.ConnectionResponse, d *schema.ResourceData) interface{} {
@@ -333,7 +350,7 @@ func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *sche
 	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
 	details, _ := singleListToMap(v)
-	regions := details["regions"].([]interface{})
+	regions := details["regions"].(*schema.Set).List()
 	tagFilter := details["tag_filter"].(string)
 	resourceGroups := details["resource_groups"].([]interface{})
 
