@@ -27,8 +27,8 @@ provider "appdynamicscloud" {
 
 ### Required
 
-- `login_mode` (String) Mode of login. Possible values are: service_principal, browser and headless.
-- `save_token` (Boolean) Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal.
+- `login_mode` (String) Mode of login. Possible values are: service_principal, browser and headless. This can also be set as the APPDYNAMICS_LOGIN_MODE environment variable.
+- `save_token` (Boolean) Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal. This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.
 - `tenant_name` (String) Tenant name of the AppDynamics Platform. This can also be set as the APPDYNAMICS_TENANT_NAME environment variable.
 
 ### Optional
