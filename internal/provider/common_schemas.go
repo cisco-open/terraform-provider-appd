@@ -132,7 +132,7 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 	}
 
 	detailsSchema["regions"] = &schema.Schema{
-		Type:        schema.TypeList,
+		Type:        schema.TypeSet,
 		Optional:    true,
 		Description: "Geographic locations used to fetch metrics",
 		Elem: &schema.Schema{

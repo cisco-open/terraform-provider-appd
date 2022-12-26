@@ -146,7 +146,7 @@ func expandCloudConnectionConfigurationAzureCreateDetails(v interface{}, d *sche
 	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
 	details, _ := singleListToMap(v)
-	regions := details["regions"].([]interface{})
+	regions := details["regions"].(*schema.Set).List()
 	tagFilter := details["tag_filter"].(string)
 	resourceGroups := details["resource_groups"].([]interface{})
 
@@ -350,7 +350,7 @@ func expandCloudConnectionConfigurationAzureUpdateDetails(v interface{}, d *sche
 	azureConfigurationDetails := cloudconnectionapi.AzureConfigurationDetails{}
 
 	details, _ := singleListToMap(v)
-	regions := details["regions"].([]interface{})
+	regions := details["regions"].(*schema.Set).List()
 	tagFilter := details["tag_filter"].(string)
 	resourceGroups := details["resource_groups"].([]interface{})
 
