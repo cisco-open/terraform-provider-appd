@@ -78,7 +78,7 @@ var resourceConnectionAwsAccessTest = map[string]interface{}{
 		"services": map[string]interface{}{
 			"name": map[string]interface{}{
 				"valid":           []interface{}{"ebs", "ec2", "ecs", "elb", "rds"},
-				"invalid":         []interface{}{10, 12.43},
+				"invalid":         []interface{}{10, "", "random_service"},
 				"multiple_valids": []interface{}{"ebs", "ec2", "ecs", "elb", "rds"},
 			},
 
@@ -245,7 +245,7 @@ func TestAccAppdynamicscloudConnectionAwsAccess_NegativeCases(t *testing.T) {
 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAwsAccessDestroy,
 		Steps: append([]resource.TestStep{
 			{
-				Config: CreateAccConnectionAwsAccessConfig(rName),
+				Config: CreateAccConnectionAwsAccessConfigWithOptional(rName),
 			},
 		}, generateNegativeStepsConnectionAwsAccess(rName, resourceName)...),
 	})
@@ -1494,101 +1494,101 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsPollingUnit(rNam
 	return resource
 }
 
-// func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsImportTagsEnabled(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsAccess(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsAccessConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
+func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsImportTagsEnabled(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentConnectionAwsAccess(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAwsAccessConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_aws" "test" {
 
-// 							display_name = "%v"
+							display_name = "%v"
 
-// 							description = "%v"
+							description = "%v"
 
-// 							state = "%v"
+							state = "%v"
 
-// 							connection_details {
+							connection_details {
 
-//                             access_type = "%v"
+                            access_type = "%v"
 
-//                             access_key_id = "%v"
+                            access_key_id = "%v"
 
-//                             secret_access_key = "%v"
+                            secret_access_key = "%v"
 
-// 							}
+							}
 
-// 							configuration_details {
+							configuration_details {
 
-// 						    regions = ["%v", "%v"]
+						    regions = ["%v", "%v"]
 
-// 						    polling {
+						    polling {
 
-//                                 interval = %v
+                                interval = %v
 
-//                                 unit = "%v"
+                                unit = "%v"
 
-//                               }
+                              }
 
-// 						        import_tags {
+						        import_tags {
 
-// 						            enabled = "%v"
+						            enabled = "%v"
 
-// 						            excluded_keys = ["%v", "%v"]
+						            excluded_keys = ["%v", "%v"]
 
-// 						          }
+						          }
 
-//                                     tag_filter = "%v"
+                                    tag_filter = "%v"
 
-// 						            services {
+						            services {
 
-//                                         name = "%v"
+                                        name = "%v"
 
-//                                         import_tags {
+                                        import_tags {
 
-//                                             enabled = "%v"
+                                            enabled = "%v"
 
-//                                             excluded_keys = ["%v","%v"]
+                                            excluded_keys = ["%v","%v"]
 
-//                                           }
+                                          }
 
-//                                             tag_filter = "%v"
+                                            tag_filter = "%v"
 
-//                                             polling {
+                                            polling {
 
-//                                                 interval = %v
+                                                interval = %v
 
-//                                                 unit = "%v"
+                                                unit = "%v"
 
-//                                               }
+                                              }
 
-//                                               }
+                                              }
 
-//								}
-//			}
-//		`, rName,
-//			searchInObject(resourceConnectionAwsAccessTest, "description.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "state.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
-//			value,
-//			searchInObject(resourceConnectionAwsAccessTest, "excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.interval.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.unit.valid.0"))
-//		return resource
-//	}
+								}
+			}
+		`, rName,
+		searchInObject(resourceConnectionAwsAccessTest, "description.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "state.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
+		value,
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.unit.valid.0"))
+	return resource
+}
 func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsImportTagsExcludedKeys(rName string, value interface{}) string {
 	var resource string
 	parentResources := getParentConnectionAwsAccess(rName)
@@ -1786,101 +1786,102 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsTagFilter(rName 
 	return resource
 }
 
-// func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesImportTagsEnabled(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsAccess(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsAccessConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
+func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesImportTagsEnabled(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentConnectionAwsAccess(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAwsAccessConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_aws" "test" {
 
-// 							display_name = "%v"
+							display_name = "%v"
 
-// 							description = "%v"
+							description = "%v"
 
-// 							state = "%v"
+							state = "%v"
 
-// 							connection_details {
+							connection_details {
 
-//                             access_type = "%v"
+                            access_type = "%v"
 
-//                             access_key_id = "%v"
+                            access_key_id = "%v"
 
-//                             secret_access_key = "%v"
+                            secret_access_key = "%v"
 
-// 							}
+							}
 
-// 							configuration_details {
+							configuration_details {
 
-// 						    regions = ["%v", "%v"]
+						    regions = ["%v", "%v"]
 
-// 						    polling {
+						    polling {
 
-//                                 interval = %v
+                                interval = %v
 
-//                                 unit = "%v"
+                                unit = "%v"
 
-//                               }
+                              }
 
-// 						        import_tags {
+						        import_tags {
 
-//                                     enabled = "%v"
+                                    enabled = "%v"
 
-//                                     excluded_keys = ["%v","%v"]
+                                    excluded_keys = ["%v","%v"]
 
-//                                   }
+                                  }
 
-//                                     tag_filter = "%v"
+                                    tag_filter = "%v"
 
-// 						            services {
+						            services {
 
-//                                         name = "%v"
+                                        name = "%v"
 
-// 						                import_tags {
+						                import_tags {
 
-// 						                    enabled = "%v"
+						                    enabled = "%v"
 
-// 						                    excluded_keys = ["%v", "%v"]
+						                    excluded_keys = ["%v", "%v"]
 
-// 						                  }
+						                  }
 
-//                                             tag_filter = "%v"
+                                            tag_filter = "%v"
 
-// 						                    polling {
+						                    polling {
 
-//                                                 interval = %v
+                                                interval = %v
 
-//                                                 unit = "%v"
+                                                unit = "%v"
 
-//                                               }
+                                              }
 
-// 						                      }
+						                      }
 
-//								}
-//			}
-//		`, rName,
-//			searchInObject(resourceConnectionAwsAccessTest, "description.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "state.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "regions.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "regions.valid.1"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "services.name.valid.0"),
-//			value,
-//			searchInObject(resourceConnectionAwsAccessTest, "excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsAccessTest, "services.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "services.polling.interval.valid.0"),
-//			searchInObject(resourceConnectionAwsAccessTest, "services.polling.unit.valid.0"))
-//		return resource
-//	}
+								}
+			}
+		`, rName,
+		searchInObject(resourceConnectionAwsAccessTest, "description.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "state.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
+		value,
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.unit.valid.0"))
+	return resource
+}
+
 func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesImportTagsExcludedKeys(rName string, value interface{}) string {
 	var resource string
 	parentResources := getParentConnectionAwsAccess(rName)
@@ -1972,7 +1973,7 @@ func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesImportTa
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.valid.0"),
-		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid.0"),
 		value,
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
 		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.interval.valid.0"),
@@ -2470,9 +2471,217 @@ func generateNegativeStepsConnectionAwsAccess(rName string, resourceName string)
 	}
 
 	testSteps = append(testSteps, resource.TestStep{
-		Config: CreateAccConnectionAwsAccessConfig(rName),
+		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsRegions(rName, "invalid_region"),
+		ExpectError: regexp.MustCompile("'details.regions' value must be from the list of AWS regions"),
+	})
+
+	testSteps = append(testSteps, resource.TestStep{
+		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsTagFilter(rName, "invalid_tag_filter"),
+		ExpectError: regexp.MustCompile("Invalid Input Error"),
+	})
+
+	testSteps = append(testSteps, resource.TestStep{
+		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesTagFilter(rName, "invalid_tag_filter"),
+		ExpectError: regexp.MustCompile("Invalid Input Error"),
+	})
+
+	invalid = searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid").([]interface{})
+	value := fmt.Sprintf("%v", invalid[1])
+	testSteps = append(testSteps, resource.TestStep{
+		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsImportTagsEnabled(rName, value),
+		ExpectError: regexp.MustCompile("Invalid Input Error"),
+	})
+
+	invalid = searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid").([]interface{})
+	value = fmt.Sprintf("%v", invalid[1])
+	testSteps = append(testSteps, resource.TestStep{
+		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesImportTagsEnabled(rName, value),
+		ExpectError: regexp.MustCompile("Invalid Input Error"),
+	})
+
+	invalid = searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.name.invalid").([]interface{})
+	for _, value := range invalid {
+		value = fmt.Sprintf("%v", invalid)
+		testSteps = append(testSteps, resource.TestStep{
+			Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesWithInvalidName(rName, value),
+			ExpectError: regexp.MustCompile("Invalid Input Error"),
+		})
+	}
+	testSteps = append(testSteps, resource.TestStep{
+		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsWithoutServices(rName),
+		ExpectError: regexp.MustCompile("At Least one services is required while updating, services cannot be updated as empty."),
+	})
+	testSteps = append(testSteps, resource.TestStep{
+		Config: CreateAccConnectionAwsAccessConfigWithOptional(rName),
 	})
 	return testSteps
+}
+
+func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsServicesWithInvalidName(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentConnectionAwsAccess(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAwsAccessConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_aws" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							state = "%v"
+
+							connection_details {
+    
+							                        
+                            access_type = "%v"
+                        
+                            access_key_id = "%v"
+                        
+                            secret_access_key = "%v"
+
+							}
+
+							configuration_details {
+    
+							
+						    regions = ["%v", "%v"]
+  
+
+						    polling {
+                                                
+                                interval = %v
+                        
+                                unit = "%v"
+
+                              }
+
+						        import_tags {
+                                                
+                                    enabled = "%v"
+                        
+                                    excluded_keys = ["%v","%v"]
+
+                                  }
+                        
+                                    tag_filter = "%v"
+
+						            services {
+						                        
+                                        name = "%v"
+
+						                import_tags {
+                                                
+                                            enabled = "%v"
+                        
+                                            excluded_keys = ["%v","%v"]
+
+                                          }
+                        
+                                            tag_filter = "%v"
+
+						                    polling {
+						                        
+                                                interval = %v
+					
+						                        unit = "%v"
+
+						                      }
+
+						                      }
+
+							}
+		}
+	`, rName,
+		searchInObject(resourceConnectionAwsAccessTest, "description.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "state.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"),
+		value,
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.tag_filter.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.services.polling.unit.valid.0"))
+	return resource
+}
+
+func CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsWithoutServices(rName string) string {
+	var resource string
+	parentResources := getParentConnectionAwsAccess(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createConnectionAwsAccessConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_connection_aws" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							state = "%v"
+
+							connection_details {
+    
+							                        
+                            access_type = "%v"
+                        
+                            access_key_id = "%v"
+                        
+                            secret_access_key = "%v"
+
+							}
+
+							configuration_details {
+    
+							
+						    regions = ["%v", "%v"]
+  
+
+						    polling {
+                                                
+                                interval = %v
+                        
+                                unit = "%v"
+
+                              }
+
+						        import_tags {
+                                                
+                                    enabled = "%v"
+                        
+                                    excluded_keys = ["%v","%v"]
+
+                                  }
+                        
+                                    tag_filter = "%v"
+
+							}
+		}
+	`, rName,
+		searchInObject(resourceConnectionAwsAccessTest, "description.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "state.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_type.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.access_key_id.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "connection_details.secret_access_key.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.interval.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.polling.unit.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.enabled.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.0"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid.1"),
+		searchInObject(resourceConnectionAwsAccessTest, "configuration_details.tag_filter.valid.0"))
+	return resource
 }
 
 // func CreateAccConnectionAwsAccessMultipleConfig(rName string) string {
