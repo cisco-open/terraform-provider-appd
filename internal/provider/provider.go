@@ -90,12 +90,15 @@ func Provider() *schema.Provider {
 				Required:    true,
 			},
 		},
-		ResourcesMap: map[string]*schema.Resource{},
+		ResourcesMap: map[string]*schema.Resource{
+			"appdynamicscloud_connection_azure": resourceCloudConnectionAzure(),
+		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"appdynamicscloud_query":          dataSourceCloudQuery(),
-			"appdynamicscloud_services_azure": dataSourceCloudServicesAzure(),
-			"appdynamicscloud_services_aws":   dataSourceCloudServicesAWS(),
-			"appdynamicscloud_regions_aws":    dataSourceCloudRegionsAWS(),
+			"appdynamicscloud_query":            dataSourceCloudQuery(),
+			"appdynamicscloud_services_azure":   dataSourceCloudServicesAzure(),
+			"appdynamicscloud_services_aws":     dataSourceCloudServicesAWS(),
+			"appdynamicscloud_regions_aws":      dataSourceCloudRegionsAWS(),
+			"appdynamicscloud_connection_azure": dataSourceCloudConnectionAzure(),
 		},
 		ConfigureContextFunc: configureClient,
 	}
