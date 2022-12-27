@@ -88,6 +88,30 @@ func resourceSchemaToDataSourceSchema(resourceSchema map[string]*schema.Schema) 
 // 	schema[key].Optional = true
 // }
 
+func appendSchema(a, b map[string]*schema.Schema) map[string]*schema.Schema {
+	c := map[string]*schema.Schema{}
+
+	for k, v := range a {
+		c[k] = v
+	}
+
+	for k, v := range b {
+		c[k] = v
+	}
+
+	return c
+}
+
+func appendSchemas(maps ...map[string]*schema.Schema) (result map[string]*schema.Schema) {
+	result = make(map[string]*schema.Schema)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
+}
+
 func httpRespToMap(resp *http.Response) (map[string]interface{}, bool) {
 	var m map[string]interface{}
 
