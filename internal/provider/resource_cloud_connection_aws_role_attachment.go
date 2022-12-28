@@ -53,6 +53,10 @@ func resourceCloudConnectionAWSRoleAttachmentRead(ctx context.Context, d *schema
 
 	resp, httpResp, err := apiClient.ConnectionsApi.GetConnection(myctx, connectionId).Execute()
 	if err != nil {
+		if httpResp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
 		return errRespToDiag(err, httpResp)
 	}
 
