@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	timeout = 90
+	timeout = 120
 
 	// TODO: generate later
 	codeChallenge = "8XqBxDPVLPcA0RuyrrRwm8l1JvAJgxh6akne5oOz2QU"
