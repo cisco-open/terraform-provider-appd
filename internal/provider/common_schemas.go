@@ -182,8 +182,9 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 						Computed: true,
 					},
 					"role_name": {
-						Type:     schema.TypeString,
-						Computed: true,
+						Type:        schema.TypeString,
+						Description: "Role name for AWS iam role",
+						Computed:    true,
 					},
 				},
 			},
@@ -376,4 +377,3 @@ func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface
 	}
 	return nil
 }
-

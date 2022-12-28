@@ -12,8 +12,8 @@ description: |-
 
 ## Example Usage
 
+### Example for Role Delegation AWS Connction.
 ```terraform
-# Example for Role Delegation AWS Connction.
 
 resource "appdynamicscloud_connection_aws" "example1" {
   display_name = "AWS Dev"
@@ -63,8 +63,10 @@ resource "appdynamicscloud_connection_aws" "example1" {
     }
   }
 }
+```
 
-# Example for Access Key AWS Connction.
+### Example for Access Key AWS Connction.
+```terraform
 
 resource "appdynamicscloud_connection_aws" "example2" {
   display_name = "AWS Dev"
@@ -159,7 +161,7 @@ Read-Only:
 						https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 - `external_id` (String) Returns an external ID for AWS role delegation connections 
 						https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
-- `role_name` (String)
+- `role_name` (String) Role name for AWS iam role
 
 
 <a id="nestedblock--configuration_details"></a>
