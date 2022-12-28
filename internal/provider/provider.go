@@ -91,8 +91,11 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"appdynamicscloud_connection_azure":  resourceCloudConnectionAzure(),
-			"appdynamicscloud_access_client_app": resourceAccessClientApp(),
+			"appdynamicscloud_connection_azure":               resourceCloudConnectionAzure(),
+			"appdynamicscloud_access_client_app":              resourceAccessClientApp(),
+			"appdynamicscloud_connection_azure":               resourceCloudConnectionAzure(),
+			"appdynamicscloud_connection_aws":                 resourceCloudConnectionAWS(),
+			"appdynamicscloud_connection_aws_role_attachment": resourceCloudConnectionAWSRoleAttachment(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"appdynamicscloud_query":             dataSourceCloudQuery(),

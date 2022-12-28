@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
@@ -185,4 +186,33 @@ func expandCloudConnectionConfigurationDetailsImportTags(v interface{}, d *schem
 		return cloudconnectionapi.ImportTagConfiguration{}, false
 	}
 
+}
+
+func checkRequiredNotRequired(d *schema.ResourceDiff, type_ string) error {
+	requiredAttributes := map[string][]string{
+		string(cloudconnectionapi.ACCESS_KEY):      {"access_key_id", "secret_access_key"},
+		string(cloudconnectionapi.ROLE_DELEGATION): {"account_id"},
+	}
+
+	// TODO: Use ConflictsWith
+	notRequiredAttributes := map[string][]string{
+		string(cloudconnectionapi.ACCESS_KEY):      {"account_id"},
+		string(cloudconnectionapi.ROLE_DELEGATION): {"access_key_id", "secret_access_key"},
+	}
+
+	details, _ := singleListToMap(d.Get("connection_details"))
+
+	for _, k := range requiredAttributes[type_] {
+		if details[k] == "" {
+			return fmt.Errorf("%s is required with %s", k, type_)
+		}
+	}
+
+	for _, k := range notRequiredAttributes[type_] {
+		if v := details[k]; v != "" {
+			return fmt.Errorf("%s should not be used with %s", k, type_)
+		}
+	}
+
+	return nil
 }
