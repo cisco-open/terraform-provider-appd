@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/Jeffail/gabs/v2 v2.6.1
-	github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221222182100-df009aeb3828
+	github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221228043829-8b9388d75433
 	github.com/chromedp/cdproto v0.0.0-20221126224343-3a0787b8dd28
 	github.com/chromedp/chromedp v0.8.6
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
