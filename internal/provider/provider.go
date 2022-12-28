@@ -87,7 +87,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeBool,
 				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_SAVE_TOKEN", nil),
 				Description: "Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal. This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.",
-				Required:    true,
+				Optional:    true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -106,9 +106,15 @@ func Provider() *schema.Provider {
 }
 
 var required = map[string][]string{
+	"headless":          {"username", "password", "save_token"},
+	"browser":           {"save_token"},
 	"service_principal": {"client_id", "client_secret"},
-	"headless":          {"username", "password"},
-	"browser":           {},
+}
+
+var notRequired = map[string][]string{
+	"headless":          {"client_id", "client_secret"},
+	"browser":           {"client_id", "client_secret", "username", "password"},
+	"service_principal": {"username", "password", "save_token"},
 }
 
 func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -116,13 +122,33 @@ func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, 
 	var token string
 	var diags diag.Diagnostics
 
-	loginMode := d.Get("login_mode").(string)
+	loginMode := strings.ToLower(d.Get("login_mode").(string))
 
+	var errs []string
 	for _, attribute := range required[loginMode] {
 		v, ok := d.GetOk(attribute)
 		if !ok || v == "" {
-			return nil, diag.Errorf("%v is required with to login with %v", attribute, loginMode)
+			errs = append(errs, fmt.Sprintf("%v is required with to login with %v", attribute, loginMode))
 		}
+	}
+
+	for _, notRequiredAttribute := range notRequired[loginMode] {
+		v, ok := d.GetOk(notRequiredAttribute)
+		if ok && v != "" {
+			errs = append(errs, fmt.Sprintf("%v is not expected here with login mode %v", notRequiredAttribute, loginMode))
+		}
+	}
+
+	if len(errs) > 0 {
+		d := diag.Diagnostics{}
+		for _, err := range errs {
+			d = append(d, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  err,
+			})
+		}
+
+		return nil, d
 	}
 
 	tenantName := d.Get("tenant_name").(string)
