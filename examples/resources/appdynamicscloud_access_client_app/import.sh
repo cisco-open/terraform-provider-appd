@@ -1,0 +1,1 @@
+terraform import appdynamicscloud_access_client_app.example <client-id>
