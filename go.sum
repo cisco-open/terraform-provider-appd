@@ -18,8 +18,8 @@ github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk
 github.com/acomagu/bufpipe v1.0.3/go.mod h1:mxdxdup/WdsKVreO5GpW4+M/1CE2sMG4jeGJ2sYmHc4=
 github.com/agext/levenshtein v1.2.3 h1:YB2fHEn0UJagG8T1rrWknE3ZQzWM06O8AMAatNn7lmo=
 github.com/agext/levenshtein v1.2.3/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
-github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221222182100-df009aeb3828 h1:EhiyezHrwZfRkVjj3HYnT6RNjh9QpeF+sUa/VY3LjZ8=
-github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221222182100-df009aeb3828/go.mod h1:SID232RH1Jp5kQp/uKxnmV+AGwE9gtPFbT9mLOUn1jk=
+github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221228043829-8b9388d75433 h1:FOedxEHwApRtRQUpu3tHJX4sOGioaEDHCqldshXpIPE=
+github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221228043829-8b9388d75433/go.mod h1:SID232RH1Jp5kQp/uKxnmV+AGwE9gtPFbT9mLOUn1jk=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/apparentlymart/go-cidr v1.1.0 h1:2mAhrMoF+nhXqxTzSZMUzDHkLjmIHC+Zzn4tdgBZjnU=
 github.com/apparentlymart/go-cidr v1.1.0/go.mod h1:EBcsNrHc3zQeuaeCeCtQruQm+n9/YjEn/vI25Lg7Gwc=
