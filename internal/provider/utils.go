@@ -148,7 +148,7 @@ func errRespToDiag(err error, errResp *http.Response) diag.Diagnostics {
 		Summary:  title.(string),
 	}
 
-	if isPresentDetail {
+	if isPresentDetail && detail != nil {
 		d.Detail = detail.(string)
 	}
 
