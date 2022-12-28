@@ -28,7 +28,6 @@ provider "appdynamicscloud" {
 ### Required
 
 - `login_mode` (String) Mode of login. Possible values are: "service_principal", "browser" and "headless". This can also be set as the APPDYNAMICS_LOGIN_MODE environment variable.
-- `save_token` (Boolean) Whether or not to store the access token acquired by login mode "browser" and "headless". This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode "service_principal". This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.
 - `tenant_name` (String) Tenant name of the AppDynamics Platform. This can also be set as the APPDYNAMICS_TENANT_NAME environment variable.
 
 ### Optional
@@ -37,6 +36,7 @@ provider "appdynamicscloud" {
 - `client_secret` (String, Sensitive) ClientSecret of the AppDynamics API Client. This can also be set as the APPDYNAMICS_CLIENT_SECRET environment variable. To be used with login mode "service_principal".
 - `password` (String) Password to login to the AppDynamics Platform. This can also be set as the APPDYNAMICS_PASSWORD environment variable. To be used with login mode "headless".
 - `username` (String) Username to login to the AppDynamics Platform. This can also be set as the APPDYNAMICS_USERNAME environment variable. To be used with login mode "headless".
+- `save_token` (Boolean) Whether or not to store the access token acquired by login mode "browser" and "headless". This is for convenience and if you store the token, it would not prompt you to login again until it expires. This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.
 
 ### Note
 
@@ -45,5 +45,5 @@ provider "appdynamicscloud" {
 - `login_mode as headless`  
   required arguments will be save_token, tenant_name, username, password.
 - `login_mode as service_principal`   
-  required arguments will be save_token, tenant_name, client_id, client_secret.
+  required arguments will be tenant_name, client_id, client_secret.
     
