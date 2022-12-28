@@ -10,11 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// const connectionAwsRoleAttachmentSelfRequiredCount = 2
-
 var resourceConnectionAwsRoleAttachmentTest = map[string]string{
 	"account_id": "860850072464",
-	"role_name":  "test-role-5",
+	"role_name":  "test-role-1",
 }
 
 var connection_id string
@@ -135,11 +133,6 @@ func testAccCheckAppdynamicscloudConnectionAwsRoleAttachmentExists(name string, 
 }
 
 func testAccCheckAppdynamicscloudConnectionAwsRoleAttachmentDestroy(s *terraform.State) error {
-	// for _, rs := range s.RootModule().Resources {
-	// 	if rs.Type == "appdynamicscloud_connection_aws_role_attachment" {
-	// 		return fmt.Errorf("Cloud Connection AWS Role Attachment %s Still exists", rs.Primary.ID)
-	// 	}
-	// }
 	return nil
 }
 

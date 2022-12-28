@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -10,8 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-// const connectionAwsRoleSelfRequiredCount = 2
 
 var awsProvider = map[string]resource.ExternalProvider{
 	"aws": {
@@ -33,9 +32,9 @@ var resourceConnectionAwsRoleTest = map[string]interface{}{
 	},
 
 	"state": map[string]interface{}{
-		"valid":           []interface{}{"ACTIVE","INACTIVE"},
+		"valid":           []interface{}{"ACTIVE", "INACTIVE"},
 		"invalid":         []interface{}{"gv2xnyi3xn"},
-		"multiple_valids": []interface{}{"ACTIVE","INACTIVE"},
+		"multiple_valids": []interface{}{"ACTIVE", "INACTIVE"},
 	},
 
 	"connection_details": map[string]interface{}{
@@ -46,9 +45,9 @@ var resourceConnectionAwsRoleTest = map[string]interface{}{
 		},
 
 		"account_id": map[string]interface{}{
-			"valid":           []interface{}{"860850072464", "860850072464"},
+			"valid":           []interface{}{os.Getenv("TEST_AWS_ACCOUNT_ID")},
 			"invalid":         []interface{}{10, 12.43},
-			"multiple_valids": []interface{}{"860850072464", "860850072464"},
+			"multiple_valids": []interface{}{os.Getenv("TEST_AWS_ACCOUNT_ID")},
 		},
 	},
 
@@ -143,7 +142,6 @@ func TestAccAppdynamicscloudConnectionAwsRole_Basic(t *testing.T) {
 	resourceName := "appdynamicscloud_connection_aws.test"
 
 	rName := makeTestVariable(acctest.RandString(5))
-	// rOther := makeTestVariable(acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -166,9 +164,6 @@ func TestAccAppdynamicscloudConnectionAwsRole_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "display_name", rName),
 
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
-
-					// resource.TestCheckResourceAttr(resourceName, "state", ""),
-
 					resource.TestCheckResourceAttr(resourceName, "connection_details.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "connection_details.0.access_type", fmt.Sprintf("%v", searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"))),
 					resource.TestCheckResourceAttr(resourceName, "connection_details.0.account_id", fmt.Sprintf("%v", searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"))),
@@ -182,7 +177,6 @@ func TestAccAppdynamicscloudConnectionAwsRole_Basic(t *testing.T) {
 					testAccCheckAppdynamicscloudConnectionAwsRoleExists(resourceName, &connectionAwsRole_updated),
 					resource.TestCheckResourceAttr(resourceName, "display_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"))),
-					// resource.TestCheckResourceAttr(resourceName, "state", fmt.Sprintf("%v", searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"))),
 					resource.TestCheckResourceAttr(resourceName, "connection_details.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "connection_details.0.access_type", fmt.Sprintf("%v", searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"))),
 					resource.TestCheckResourceAttr(resourceName, "connection_details.0.account_id", fmt.Sprintf("%v", searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"))),
@@ -254,7 +248,6 @@ func TestAccAppdynamicscloudConnectionAwsRole_Update(t *testing.T) {
 func TestAccAppdynamicscloudConnectionAwsRole_NegativeCases(t *testing.T) {
 	resourceName := "appdynamicscloud_connection_aws.test"
 
-	// [TODO]: Add makeTestVariable() to utils.go file
 	rName := makeTestVariable(acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
@@ -269,23 +262,6 @@ func TestAccAppdynamicscloudConnectionAwsRole_NegativeCases(t *testing.T) {
 		}, generateNegativeStepsConnectionAwsRole(rName, resourceName)...),
 	})
 }
-
-// func TestAccAppdynamicscloudConnectionAwsRole_MultipleCreateDelete(t *testing.T) {
-
-// 	// [TODO]: Add makeTestVariable() to utils.go file
-// 	rName := makeTestVariable(acctest.RandString(5))
-
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheck(t) },
-// 		ProviderFactories: providerFactories,
-// 		CheckDestroy:      testAccCheckAppdynamicscloudConnectionAwsRoleDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: CreateAccConnectionAwsRoleMultipleConfig(rName),
-// 			},
-// 		},
-// 	})
-// }
 
 func CreateAccConnectionAwsRoleWithoutDisplayName(rName string) string {
 	var resource string
@@ -602,24 +578,6 @@ func generateStepForUpdatedRequiredAttrConnectionAwsRole(rName string, resourceN
 			testAccCheckAppdynamicscloudConnectionAwsRoleIdEqual(connectionAwsRole_default, connectionAwsRole_updated),
 		),
 	})
-	// value = searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.1")
-	// testSteps = append(testSteps, resource.TestStep{
-	// 	Config: CreateAccConnectionAwsRoleUpdateRequiredConnectionDetailsAccessType(rName),
-	// 	Check: resource.ComposeTestCheckFunc(
-	// 		testAccCheckAppdynamicscloudConnectionAwsRoleExists(resourceName, connectionAwsRole_updated),
-	// 		resource.TestCheckResourceAttr(resourceName, "connection_details.0.access_type", fmt.Sprintf("%v", value)),
-	// 		testAccCheckAppdynamicscloudConnectionAwsRoleIdNotEqual(connectionAwsRole_default, connectionAwsRole_updated),
-	// 	),
-	// })
-	// value = searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.1")
-	// testSteps = append(testSteps, resource.TestStep{
-	// 	Config: CreateAccConnectionAwsRoleUpdateRequiredConnectionDetailsAccountId(rName),
-	// 	Check: resource.ComposeTestCheckFunc(
-	// 		testAccCheckAppdynamicscloudConnectionAwsRoleExists(resourceName, connectionAwsRole_updated),
-	// 		resource.TestCheckResourceAttr(resourceName, "connection_details.0.account_id", fmt.Sprintf("%v", value)),
-	// 		testAccCheckAppdynamicscloudConnectionAwsRoleIdNotEqual(connectionAwsRole_default, connectionAwsRole_updated),
-	// 	),
-	// })
 
 	return testSteps
 }
@@ -719,193 +677,6 @@ func CreateAccConnectionAwsRoleUpdateRequiredDisplayName(rName string) string {
 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.unit.valid.0"))
 	return resource
 }
-
-// func CreateAccConnectionAwsRoleUpdateRequiredConnectionDetailsAccessType(rName string) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsRole(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsRoleConfig(parentResources)
-// 	value := searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.1")
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							connection_details {
-
-// 						    access_type = "%v"
-
-//                             account_id = "%v"
-
-// 							}
-
-// 							configuration_details {
-
-//                             regions = ["%v","%v"]
-
-//                             polling {
-
-//                                 interval = %v
-
-//                                 unit = "%v"
-
-//                               }
-
-//                                 import_tags {
-
-//                                     enabled = "%v"
-
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-
-//                                     tag_filter = "%v"
-
-//                                     services {
-
-//                                         name = "%v"
-
-//                                         import_tags {
-
-//                                             enabled = "%v"
-
-//                                             excluded_keys = ["%v","%v"]
-
-//                                           }
-
-//                                             tag_filter = "%v"
-
-//                                             polling {
-
-//                                                 interval = %v
-
-//                                                 unit = "%v"
-
-//                                               }
-
-//                                               }
-
-// 							}
-// 			}
-// 		`, searchInObject(resourceConnectionAwsRoleTest, "display_name.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"),
-// 		value,
-// 		searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.unit.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.name.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.unit.valid.0"))
-// 	return resource
-// }
-// func CreateAccConnectionAwsRoleUpdateRequiredConnectionDetailsAccountId(rName string) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsRole(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsRoleConfig(parentResources)
-// 	value := searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.1")
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							connection_details {
-
-//                             access_type = "%v"
-
-// 						    account_id = "%v"
-
-// 							}
-
-// 							configuration_details {
-
-//                             regions = ["%v","%v"]
-
-//                             polling {
-
-//                                 interval = %v
-
-//                                 unit = "%v"
-
-//                               }
-
-//                                 import_tags {
-
-//                                     enabled = "%v"
-
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-
-//                                     tag_filter = "%v"
-
-//                                     services {
-
-//                                         name = "%v"
-
-//                                         import_tags {
-
-//                                             enabled = "%v"
-
-//                                             excluded_keys = ["%v","%v"]
-
-//                                           }
-
-//                                             tag_filter = "%v"
-
-//                                             polling {
-
-//                                                 interval = %v
-
-//                                                 unit = "%v"
-
-//                                               }
-
-//                                               }
-
-// 							}
-// 			}
-// 		`, searchInObject(resourceConnectionAwsRoleTest, "display_name.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"),
-// 		value,
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.unit.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.name.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.tag_filter.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.unit.valid.0"))
-// 	return resource
-// }
 
 func CreateAccConnectionAwsRoleUpdatedAttrDescription(rName string, value interface{}) string {
 	var resource string
@@ -1185,98 +956,6 @@ func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsRegions(rName stri
 	return resource
 }
 
-// func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsPollingInterval(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsRole(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsRoleConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							connection_details {
-
-//                             access_type = "%v"
-
-//                             account_id = "%v"
-
-// 							}
-
-// 							configuration_details {
-
-// 						    regions = ["%v", "%v"]
-
-// 						    polling {
-
-// 						        interval = %v
-
-//                                 unit = "%v"
-
-// 						      }
-
-// 						        import_tags {
-
-//                                     enabled = "%v"
-
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-
-//                                     tag_filter = "%v"
-
-// 						            services {
-
-//                                         name = "%v"
-
-//                                         import_tags {
-
-//                                             enabled = "%v"
-
-//                                             excluded_keys = ["%v","%v"]
-
-//                                           }
-
-//                                             tag_filter = "%v"
-
-//                                             polling {
-
-//                                                 interval = %v
-
-//                                                 unit = "%v"
-
-//                                               }
-
-//                                               }
-
-//								}
-//			}
-//		`, rName,
-//			searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "regions.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "regions.valid.1"),
-//			value,
-//			searchInObject(resourceConnectionAwsRoleTest, "polling.unit.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.enabled.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.name.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.enabled.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.interval.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.unit.valid.0"))
-//		return resource
-//	}
 func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsPollingUnit(rName string, value interface{}) string {
 	var resource string
 	parentResources := getParentConnectionAwsRole(rName)
@@ -1927,98 +1606,6 @@ func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsServicesTagFilter(
 	return resource
 }
 
-// func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsServicesPollingInterval(rName string, value interface{}) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsRole(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsRoleConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							connection_details {
-
-//                             access_type = "%v"
-
-//                             account_id = "%v"
-
-// 							}
-
-// 							configuration_details {
-
-// 						    regions = ["%v", "%v"]
-
-// 						    polling {
-
-//                                 interval = %v
-
-//                                 unit = "%v"
-
-//                               }
-
-// 						        import_tags {
-
-//                                     enabled = "%v"
-
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-
-//                                     tag_filter = "%v"
-
-// 						            services {
-
-//                                         name = "%v"
-
-// 						                import_tags {
-
-//                                             enabled = "%v"
-
-//                                             excluded_keys = ["%v","%v"]
-
-//                                           }
-
-//                                             tag_filter = "%v"
-
-// 						                    polling {
-
-// 						                        interval = %v
-
-//                                                 unit = "%v"
-
-// 						                      }
-
-// 						                      }
-
-//								}
-//			}
-//		`, rName,
-//			searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "regions.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "regions.valid.1"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.interval.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.unit.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.enabled.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.tag_filter.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "services.name.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "services.import_tags.enabled.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "services.import_tags.excluded_keys.valid.0"),
-//			searchInObject(resourceConnectionAwsRoleTest, "services.import_tags.excluded_keys.valid.1"),
-//			searchInObject(resourceConnectionAwsRoleTest, "services.tag_filter.valid.0"),
-//			value,
-//			searchInObject(resourceConnectionAwsRoleTest, "polling.unit.valid.0"))
-//		return resource
-//	}
 func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsServicesPollingUnit(rName string, value interface{}) string {
 	var resource string
 	parentResources := getParentConnectionAwsRole(rName)
@@ -2130,7 +1717,7 @@ func generateStepForUpdatedAttrConnectionAwsRole(rName string, resourceName stri
 			),
 		})
 	}
-	
+
 	valid = searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -2143,7 +1730,7 @@ func generateStepForUpdatedAttrConnectionAwsRole(rName string, resourceName stri
 			),
 		})
 	}
-	
+
 	valid = searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -2169,7 +1756,7 @@ func generateStepForUpdatedAttrConnectionAwsRole(rName string, resourceName stri
 			),
 		})
 	}
-	
+
 	valid = searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -2264,10 +1851,6 @@ func generateNegativeStepsConnectionAwsRole(rName string, resourceName string) [
 			ExpectError: regexp.MustCompile("Invalid Input Error"),
 		})
 	}
-	// testSteps = append(testSteps, resource.TestStep{
-	// 	Config:      CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsWithoutServices(rName),
-	// 	ExpectError: regexp.MustCompile("At Least one services is required while updating, services cannot be updated as empty."),
-	// })
 	testSteps = append(testSteps, resource.TestStep{
 		Config: CreateAccConnectionAwsRoleConfig(rName),
 	})
@@ -2369,167 +1952,6 @@ func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsServicesWithInvali
 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.unit.valid.0"))
 	return resource
 }
-
-// func CreateAccConnectionAwsRoleUpdatedAttrConfigurationDetailsWithoutServices(rName string) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsAccess(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsAccessConfig(parentResources)
-// 	resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							connection_details {
-    
-							                        
-//                             access_type = "%v"
-		
-// 							account_id = "%v"
-
-// 							}
-
-// 							configuration_details {
-    
-							
-// 						    regions = ["%v", "%v"]
-  
-
-// 						    polling {
-                                                
-//                                 interval = %v
-                        
-//                                 unit = "%v"
-
-//                               }
-
-// 						        import_tags {
-                                                
-//                                     enabled = "%v"
-                        
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-                        
-//                                     tag_filter = "%v"
-
-// 							}
-// 		}
-// 	`, rName,
-// 		searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.interval.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.unit.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.enabled.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-// 		searchInObject(resourceConnectionAwsRoleTest, "configuration_details.tag_filter.valid.0"))
-// 	return resource
-// }
-
-// func CreateAccConnectionAwsRoleMultipleConfig(rName string) string {
-// 	var resource string
-// 	parentResources := getParentConnectionAwsRole(rName)
-// 	parentResources = parentResources[:len(parentResources)-1]
-// 	resource += createConnectionAwsRoleConfig(parentResources)
-// 	multipleValues := searchInObject(resourceConnectionAwsRoleTest, "display_name.multiple_valids").([]interface{})
-// 	for i, val := range multipleValues {
-// 		resource += fmt.Sprintf(`
-// 			resource "appdynamicscloud_connection_aws" "test%d" {
-
-// 							display_name = "%v"
-
-// 							description = "%v"
-
-// 							state = "%v"
-
-// 							connection_details {
-
-//                             access_type = "%v"
-
-//                             account_id = "%v"
-
-// 							}
-
-// 							configuration_details {
-
-//                             regions = ["%v","%v"]
-
-//                             polling {
-
-//                                 interval = %v
-
-//                                 unit = "%v"
-
-//                               }
-
-//                                 import_tags {
-
-//                                     enabled = "%v"
-
-//                                     excluded_keys = ["%v","%v"]
-
-//                                   }
-
-//                                     tag_filter = "%v"
-
-//                                     services {
-
-//                                         name = "%v"
-
-//                                         import_tags {
-
-//                                             enabled = "%v"
-
-//                                             excluded_keys = ["%v","%v"]
-
-//                                           }
-
-//                                             tag_filter = "%v"
-
-//                                             polling {
-
-//                                                 interval = %v
-
-//                                                 unit = "%v"
-
-//                                               }
-
-//                                               }
-
-// 							}
-// 			}
-// 		`, i, val,
-// 			searchInObject(resourceConnectionAwsRoleTest, "description.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "state.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "connection_details.access_type.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "connection_details.account_id.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.regions.valid.1"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.interval.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.polling.unit.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.enabled.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.import_tags.excluded_keys.valid.1"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.tag_filter.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.name.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.enabled.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.import_tags.excluded_keys.valid.1"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.tag_filter.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.interval.valid.0"),
-// 			searchInObject(resourceConnectionAwsRoleTest, "configuration_details.services.polling.unit.valid.0"))
-// 	}
-// 	return resource
-// }
 
 func testAccCheckAppdynamicscloudConnectionAwsRoleExists(name string, connectionAwsRole *cloudconnectionapi.ConnectionResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
