@@ -90,7 +90,12 @@ func resourceCloudConnectionAWSRoleAttachmentUpdate(ctx context.Context, d *sche
 }
 
 func resourceCloudConnectionAWSRoleAttachmentDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	d.Set("role_name", "")
-	resourceCloudConnectionAWSRoleAttachmentUpdate(ctx, d, m)
-	return nil
+	diags:=diag.Diagnostics{}
+	diagWarn := diag.Diagnostic{
+		Severity: diag.Warning,
+		Summary:  "Delete Warning",
+		Detail:   `The Resource has been deleted but the role name cannot be detached from connection. Unless the connection itself is deleted.`,
+	}
+	diags = append(diags, diagWarn)
+	return diags
 }
