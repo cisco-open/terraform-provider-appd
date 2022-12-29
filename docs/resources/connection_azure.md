@@ -8,7 +8,7 @@ description: |-
 
 # appdynamicscloud_connection_azure (Resource)
 
-
+Supported [Services](#table--services) are listed below.
 
 ## Example Usage
 
@@ -167,3 +167,14 @@ Import is supported using the following syntax:
 ```shell
 terraform import appdynamicscloud_connection_azure.example <connection-id>
 ```
+
+
+<a id="table--services"></a>
+### Azure Services
+| Display Name                 | ID         |
+|------------------------------|------------|
+| Azure Virtual Machine        | vm         |
+| Azure Load Balancer          | lb         |
+| Azure Disk Storage           | disk       |
+| Azure Database for PostgreSQL| postgresql |
+| Azure SQL Database  | sql |

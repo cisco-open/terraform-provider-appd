@@ -8,11 +8,16 @@ description: |-
 
 # appdynamicscloud_connection_aws (Resource)
 
+- AWS connection for role delegation will be created with `access_type="role_delegation"` and `account_id`.
+- AWS connection for access key will be created with `access_type="access_key"`, `access_key_id`, `secret_access_key`.
+- To attach the `role_name` for role delegation user has to create resource `appdynamicscloud_connection_aws` for role delegation and resource `appdynamicscloud_connection_aws_role_attachment` with `role_name`.  
+- Supported [Services](#table--services) are listed below.
 
+~> **Note:** In case of Role Delegation AWS Connection the state will remain as `INCOMPLETE` until the role attachment is done. Once user attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will change to `CONFIGURED`. After the state become `CONFIGURED` user can change state to `ACTIVE` by terraform apply.
 
 ## Example Usage
 
-### Example for Role Delegation AWS Connction.
+### Example for Role Delegation AWS Connection.
 ```terraform
 
 resource "appdynamicscloud_connection_aws" "example1" {
@@ -65,7 +70,7 @@ resource "appdynamicscloud_connection_aws" "example1" {
 }
 ```
 
-### Example for Access Key AWS Connction.
+### Example for Access Key AWS Connection.
 ```terraform
 
 resource "appdynamicscloud_connection_aws" "example2" {
@@ -230,3 +235,14 @@ Import is supported using the following syntax:
 ```shell
 terraform import appdynamicscloud_connection_aws.example <connection-id>
 ```
+
+
+<a id="table--services"></a>
+### AWS Services
+| Display Name                      | ID  |
+|-----------------------------------|-----|
+| Elastic Cloud Compute             | ec2 |
+| Elastic Load Balancing            | elb |
+| Elastic Block Storage             | ebs |
+| Amazon Relational Database Service| rds |
+| Amazon Elastic Container Service  | ecs |
