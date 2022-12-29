@@ -86,8 +86,8 @@ func Provider() *schema.Provider {
 			"save_token": {
 				Type:        schema.TypeBool,
 				DefaultFunc: schema.EnvDefaultFunc("APPDYNAMICS_SAVE_TOKEN", nil),
-				Description: "Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. The value is ignored with login mode service_principal. This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.",
-				Required:    true,
+				Description: "Whether or not to store the access token acquired by login mode browser and headless. This is for convenience and if you store the token, it would not prompt you to login again until it expires. This can also be set as the APPDYNAMICS_SAVE_TOKEN environment variable.",
+				Optional:    true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
