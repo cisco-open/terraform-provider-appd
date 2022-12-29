@@ -161,10 +161,14 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 					},
 
 					// computed for aws access_key
+					"aws_account_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					
 					"account_id": {
 						Type:     schema.TypeString,
 						Optional: true,
-						Computed: true,
 						ForceNew: true,
 					},
 

@@ -332,6 +332,7 @@ func flattenCloudConnectionAWSDetailsAccessKey(awsConnectionDetails *cloudconnec
 		"access_type":       cloudconnectionapi.ACCESS_KEY,
 		"access_key_id":     accessKeyDetails.AccessKeyId,
 		"secret_access_key": secretAccessKey,
+		"aws_account_id":    accessKeyDetails.AccountId,
 	}
 }
 
