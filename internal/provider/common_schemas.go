@@ -51,12 +51,12 @@ func cloudConnectionCommonSchema() map[string]*schema.Schema {
 
 		"created_at": {
 			Type:        schema.TypeString,
-			Description: "The RFC3339 timestamp when the client was created",
+			Description: "The RFC3339 timestamp",
 			Computed:    true,
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Description: "The RFC3339 timestamp when the client was last updated.",
+			Description: "The RFC3339 timestamp",
 			Computed:    true,
 		},
 	}
@@ -206,7 +206,7 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 
 	servicesSchema["name"] = &schema.Schema{
 		Type:        schema.TypeString,
-		Description: "service name for which we will fetch metrics",
+		Description: "Service name for which we will fetch metrics",
 		Required:    true,
 	}
 
@@ -221,7 +221,7 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 
 	detailsSchema["services"] = &schema.Schema{
 		Type:        schema.TypeSet,
-		Description: "services for which we will fetch metrics",
+		Description: "Services for which we will fetch metrics",
 		Optional:    true,
 		Computed:    true,
 		Set:         calculateHashStringWithPolling,

@@ -142,10 +142,10 @@ resource "appdynamicscloud_connection_aws" "example2" {
 
 - `configuration_details_service_default` (Boolean) Whether default services are present in configuration details
 - `configuration_id` (String) The Configuration ID of the Connection
-- `created_at` (String) The RFC3339 timestamp when the client was created
+- `created_at` (String) The RFC3339 timestamp
 - `id` (String) The ID of this resource.
 - `state_message` (String) Connection state message
-- `updated_at` (String) The RFC3339 timestamp when the client was last updated.
+- `updated_at` (String) The RFC3339 timestamp
 
 <a id="nestedblock--connection_details"></a>
 ### Nested Schema for `connection_details`
@@ -178,7 +178,7 @@ Optional:
 - `import_tags` (Block List, Max: 1) Configuration for importing tags of resources that are being monitored (see [below for nested schema](#nestedblock--configuration_details--import_tags))
 - `polling` (Block List, Max: 1) How often the selected connection is polled for information (see [below for nested schema](#nestedblock--configuration_details--polling))
 - `regions` (Set of String) Geographic locations used to fetch metrics
-- `services` (Block Set) services for which we will fetch metrics (see [below for nested schema](#nestedblock--configuration_details--services))
+- `services` (Block Set) Services for which we will fetch metrics (see [below for nested schema](#nestedblock--configuration_details--services))
 - `tag_filter` (String) Expression for filtering resources to be monitored, based on tags. Example: (tags(env) = 'prod' || tags(env) = 'production')) && tags(project) = 'cloudcollectors'
 
 <a id="nestedblock--configuration_details--import_tags"></a>
@@ -204,7 +204,7 @@ Optional:
 
 Required:
 
-- `name` (String) service name for which we will fetch metrics
+- `name` (String) Service name for which we will fetch metrics
 
 Optional:
 
