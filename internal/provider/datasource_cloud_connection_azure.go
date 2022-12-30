@@ -13,8 +13,9 @@ func dataSourceCloudConnectionAzure() *schema.Resource {
 
 	dsSchema["connection_id"] = &schema.Schema{
 		Type:             schema.TypeString,
-		ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
+		Description:      "The Connection ID of the Azure Connection",
 		Required:         true,
+		ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
 	}
 
 	return &schema.Resource{

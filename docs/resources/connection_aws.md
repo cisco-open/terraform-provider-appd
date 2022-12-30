@@ -134,18 +134,18 @@ resource "appdynamicscloud_connection_aws" "example2" {
 
 ### Optional
 
-- `configuration_details` (Block List, Max: 1) (see [below for nested schema](#nestedblock--configuration_details))
+- `configuration_details` (Block List, Max: 1) The Configuration Details for the Connection (see [below for nested schema](#nestedblock--configuration_details))
 - `description` (String) Description for this connection or configuration
 - `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
 
 ### Read-Only
 
 - `configuration_details_service_default` (Boolean) Whether default services are present in configuration details
-- `configuration_id` (String)
-- `created_at` (String)
+- `configuration_id` (String) The Configuration ID of the Connection
+- `created_at` (String) The RFC3339 timestamp when the client was created
 - `id` (String) The ID of this resource.
 - `state_message` (String) Connection state message
-- `updated_at` (String)
+- `updated_at` (String) The RFC3339 timestamp when the client was last updated.
 
 <a id="nestedblock--connection_details"></a>
 ### Nested Schema for `connection_details`
@@ -157,13 +157,14 @@ Required:
 Optional:
 
 - `access_key_id` (String) AWS Access keys are long-term credentials for an AWS IAM user, or account root user. The access key ID is one of two access keys needed to authenticate to AWS. The other is a secret access key. You need access keys to make programmatic calls using the AWS CLI, AWS Tools, or PowerShell.
-- `account_id` (String)
+- `account_id` (String) AWS Account ID provided by the user
 - `secret_access_key` (String, Sensitive) The secret access key is one of two access keys needed to authenticate to AWS. The other is an access key ID. The secret access key is only available once, when you create it. Download the generated secret access key and save in a secure location. If the secret access key is lost or deleted, you must create a new one. You need access keys to make programmatic calls using the AWS CLI, AWS Tools, or PowerShell.
 
 Read-Only:
 
 - `appdynamics_aws_account_id` (String) AppDynamics AWS Account ID. Delegates a user to an Identity Access Management (IAM) role in AWS. The AWS IAM role provides AppDynamics access to resources.
 						https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
+- `aws_account_id` (String) AWS Account ID fetched by the server
 - `external_id` (String) Returns an external ID for AWS role delegation connections 
 						https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 - `role_name` (String) Role name for AWS iam role
@@ -203,7 +204,7 @@ Optional:
 
 Required:
 
-- `name` (String)
+- `name` (String) service name for which we will fetch metrics
 
 Optional:
 

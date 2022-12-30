@@ -29,6 +29,7 @@ func resourceCloudConnectionAWSRoleAttachment() *schema.Resource {
 			"connection_id": {
 				Type:             schema.TypeString,
 				Required:         true,
+				Description:      "The Connection ID of the AWS Connection",
 				ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
 			},
 
