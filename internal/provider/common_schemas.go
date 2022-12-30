@@ -50,12 +50,14 @@ func cloudConnectionCommonSchema() map[string]*schema.Schema {
 		},
 
 		"created_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Description: "The RFC3339 timestamp",
+			Computed:    true,
 		},
 		"updated_at": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:        schema.TypeString,
+			Description: "The RFC3339 timestamp",
+			Computed:    true,
 		},
 	}
 }
@@ -84,9 +86,9 @@ func cloudConnectionCommonSchemaExtras() map[string]*schema.Schema {
 			Computed:    true,
 		},
 		"configuration_id": {
-			Type: schema.TypeString,
-			// ValidateDiagFunc: validation.ToDiagFunc(validation.IsUUID),
-			Computed: true,
+			Type:        schema.TypeString,
+			Description: "The Configuration ID of the Connection",
+			Computed:    true,
 		},
 	}
 }
@@ -162,14 +164,16 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 
 					// computed for aws access_key
 					"aws_account_id": {
-						Type:     schema.TypeString,
-						Computed: true,
+						Type:        schema.TypeString,
+						Description: "AWS Account ID fetched by the server",
+						Computed:    true,
 					},
-					
+
 					"account_id": {
-						Type:     schema.TypeString,
-						Optional: true,
-						ForceNew: true,
+						Type:        schema.TypeString,
+						Description: "AWS Account ID provided by the user",
+						Optional:    true,
+						ForceNew:    true,
 					},
 
 					// computed for access_type role_delegation
@@ -201,8 +205,9 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 	servicesSchema := cloudConnectionConfigurationDetailsServices()
 
 	servicesSchema["name"] = &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
+		Type:        schema.TypeString,
+		Description: "Service name for which we will fetch metrics",
+		Required:    true,
 	}
 
 	detailsSchema["regions"] = &schema.Schema{
@@ -216,7 +221,7 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 
 	detailsSchema["services"] = &schema.Schema{
 		Type:        schema.TypeSet,
-		Description: "services for which we will fetch metrics",
+		Description: "Services for which we will fetch metrics",
 		Optional:    true,
 		Computed:    true,
 		Set:         calculateHashStringWithPolling,
@@ -238,10 +243,11 @@ func cloudConnectionConfigurationSchema(provider string) map[string]*schema.Sche
 
 	return map[string]*schema.Schema{
 		"configuration_details": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
+			Type:        schema.TypeList,
+			Description: "The Configuration Details for the Connection",
+			Optional:    true,
+			Computed:    true,
+			MaxItems:    1,
 			Elem: &schema.Resource{
 				Schema: detailsSchema,
 			},
@@ -315,6 +321,7 @@ func cloudConnectionConfigurationDetails() map[string]*schema.Schema {
 		"tag_filter": {
 			Type:        schema.TypeString,
 			Description: "Expression for filtering resources to be monitored, based on tags. Example: (tags(env) = 'prod' || tags(env) = 'production')) && tags(project) = 'cloudcollectors'",
+			Default:     "",
 			Optional:    true,
 		},
 	}

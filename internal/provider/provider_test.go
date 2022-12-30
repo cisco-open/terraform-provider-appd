@@ -122,10 +122,6 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("APPDYNAMICS_TENANT_NAME env variable must be set for acceptance tests")
 	}
 
-	if v := os.Getenv("APPDYNAMICS_SAVE_TOKEN"); v == "" {
-		t.Fatal("APPDYNAMICS_SAVE_TOKEN env variable must be set for acceptance tests")
-	}
-
 	loginMode := os.Getenv("APPDYNAMICS_LOGIN_MODE")
 	if loginMode == "" {
 		t.Fatal("APPDYNAMICS_LOGIN_MODE env variable must be set for acceptance tests")
@@ -143,6 +139,13 @@ func testAccPreCheck(t *testing.T) {
 			}
 			if v := os.Getenv("APPDYNAMICS_PASSWORD"); v == "" {
 				t.Fatal("APPDYNAMICS_PASSWORD env variable must be set for acceptance tests")
+			}
+			if v := os.Getenv("APPDYNAMICS_SAVE_TOKEN"); v == "" {
+				t.Fatal("APPDYNAMICS_SAVE_TOKEN env variable must be set for acceptance tests")
+			}
+		} else if strings.Contains(loginMode, "browser") {
+			if v := os.Getenv("APPDYNAMICS_SAVE_TOKEN"); v == "" {
+				t.Fatal("APPDYNAMICS_SAVE_TOKEN env variable must be set for acceptance tests")
 			}
 		}
 	}

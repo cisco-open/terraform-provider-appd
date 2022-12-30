@@ -62,6 +62,7 @@ func resourceAccessClientApp() *schema.Resource {
 			"description": {
 				Type:        schema.TypeString,
 				Description: "A user provided description of the client.",
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
 				Required:    true,
 			},
 			"auth_type": {

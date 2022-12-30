@@ -23,21 +23,21 @@ data "appdynamicscloud_connection_azure" "example" {
 
 ### Required
 
-- `connection_id` (String)
+- `connection_id` (String) The Connection ID of the Azure Connection
 
 ### Read-Only
 
-- `configuration_details` (List of Object) (see [below for nested schema](#nestedatt--configuration_details))
+- `configuration_details` (List of Object) The Configuration Details for the Connection (see [below for nested schema](#nestedatt--configuration_details))
 - `configuration_details_service_default` (Boolean) Whether default services are present in configuration details
-- `configuration_id` (String)
+- `configuration_id` (String) The Configuration ID of the Connection
 - `connection_details` (List of Object) (see [below for nested schema](#nestedatt--connection_details))
-- `created_at` (String)
+- `created_at` (String) The RFC3339 timestamp
 - `description` (String) Description for this connection or configuration
 - `display_name` (String) Name of the connection or configuration
 - `id` (String) The ID of this resource.
 - `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
 - `state_message` (String) Connection state message
-- `updated_at` (String)
+- `updated_at` (String) The RFC3339 timestamp
 
 <a id="nestedatt--configuration_details"></a>
 ### Nested Schema for `configuration_details`

@@ -76,18 +76,18 @@ resource "appdynamicscloud_connection_azure" "example" {
 
 ### Optional
 
-- `configuration_details` (Block List, Max: 1) (see [below for nested schema](#nestedblock--configuration_details))
+- `configuration_details` (Block List, Max: 1) The Configuration Details for the Connection (see [below for nested schema](#nestedblock--configuration_details))
 - `description` (String) Description for this connection or configuration
 - `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
 
 ### Read-Only
 
 - `configuration_details_service_default` (Boolean) Whether default services are present in configuration details
-- `configuration_id` (String)
-- `created_at` (String)
+- `configuration_id` (String) The Configuration ID of the Connection
+- `created_at` (String) The RFC3339 timestamp
 - `id` (String) The ID of this resource.
 - `state_message` (String) Connection state message
-- `updated_at` (String)
+- `updated_at` (String) The RFC3339 timestamp
 
 <a id="nestedblock--connection_details"></a>
 ### Nested Schema for `connection_details`
@@ -109,7 +109,7 @@ Optional:
 - `polling` (Block List, Max: 1) How often the selected connection is polled for information (see [below for nested schema](#nestedblock--configuration_details--polling))
 - `regions` (Set of String) Geographic locations used to fetch metrics
 - `resource_groups` (List of String) Azure Resource groups used to fetch metrics
-- `services` (Block Set) services for which we will fetch metrics (see [below for nested schema](#nestedblock--configuration_details--services))
+- `services` (Block Set) Services for which we will fetch metrics (see [below for nested schema](#nestedblock--configuration_details--services))
 - `tag_filter` (String) Expression for filtering resources to be monitored, based on tags. Example: (tags(env) = 'prod' || tags(env) = 'production')) && tags(project) = 'cloudcollectors'
 
 <a id="nestedblock--configuration_details--import_tags"></a>
@@ -135,7 +135,7 @@ Optional:
 
 Required:
 
-- `name` (String)
+- `name` (String) Service name for which we will fetch metrics
 
 Optional:
 
