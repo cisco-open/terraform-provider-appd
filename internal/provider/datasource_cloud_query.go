@@ -2,9 +2,11 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 
+	container "github.com/Jeffail/gabs/v2"
 	cloudQueryApi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudquery"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -42,6 +44,9 @@ func dataSourceCloudQueryRead(ctx context.Context, d *schema.ResourceData, m int
 	if err != nil {
 		log.Fatal(err)
 	}
+	contBytes, _ := container.ParseJSON(bytes)
+
+	fmt.Printf("CURSOR:%v", contBytes.Index(1).Search("_links", "next", "href").Data())
 	response := string(bytes)
 	d.SetId(*query.Query)
 	d.Set("response", response)
