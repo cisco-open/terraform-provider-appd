@@ -1,0 +1,87 @@
+[{
+  "type" : "model",
+  "model" : {
+    "name" : "m:main",
+    "fields" : [ {
+      "alias" : "id",
+      "type" : "string",
+      "hints" : {
+        "kind" : "entity",
+        "field" : "id",
+        "type" : "apm:service_instance"
+      }
+    }, {
+      "alias" : "name",
+      "type" : "string",
+      "hints" : { }
+    }, {
+      "alias" : "cpm",
+      "type" : "complex",
+      "hints" : {
+        "kind" : "metric",
+        "type" : "apm:response_time"
+      },
+      "form" : "reference",
+      "model" : {
+        "name" : "m:cpm",
+        "fields" : [ {
+          "alias" : "source",
+          "type" : "string",
+          "hints" : {
+            "kind" : "metric",
+            "field" : "source",
+            "type" : "apm:response_time"
+          }
+        }, {
+          "alias" : "cpm",
+          "type" : "timeseries",
+          "hints" : {
+            "kind" : "metric",
+            "type" : "apm:response_time"
+          },
+          "form" : "inline",
+          "model" : {
+            "name" : "m:cpm_2",
+            "fields" : [ {
+              "alias" : "timestamp",
+              "type" : "timestamp",
+              "hints" : {
+                "kind" : "metric",
+                "field" : "timestamp",
+                "type" : "apm:response_time"
+              }
+            }, {
+              "alias" : "min",
+              "type" : "number",
+              "hints" : {
+                "kind" : "metric",
+                "field" : "min",
+                "type" : "apm:response_time"
+              }
+            }, {
+              "alias" : "max",
+              "type" : "number",
+              "hints" : {
+                "kind" : "metric",
+                "field" : "max",
+                "type" : "apm:response_time"
+              }
+            } ]
+          }
+        } ]
+      }
+    } ]
+  }
+},{
+  "type" : "data",
+  "model" : {
+    "$jsonPath" : "$..[?(@.type == 'model')]..[?(@.name == 'm:main')]",
+    "$model" : "m:main"
+  },
+  "metadata" : {
+    "since" : "2022-12-28T14:02:53.420626182Z",
+    "until" : "2023-01-01T18:02:53.420626182Z"
+  },
+  "dataset" : "d:main",
+  "data" : [ ]
+}]
