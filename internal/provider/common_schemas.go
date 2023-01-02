@@ -67,7 +67,7 @@ func cloudConnectionCommonSchemaExtras() map[string]*schema.Schema {
 		"state": {
 			Type:             schema.TypeString,
 			ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"ACTIVE", "INACTIVE"}, true)),
-			Description:      "Connection state. This can only be used if configuration_id is specified. Possible values: [\"ACTIVE\", \"INACTIVE\"]",
+			Description:      "Connection state. Value which can be given: [ \"ACTIVE\", \"INACTIVE\" ]. All possible values: [ \"INACTIVE\", \"ACTIVE\", \"PENDING CONFIGURATION\", \"INCOMPLETE\", \"CONFIGURED\", \"INSUFFICIENT LICENSE\", \"ERROR\", \"WARNING\", \"CRITICAL\" ]",
 			Optional:         true,
 			Computed:         true,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
@@ -77,6 +77,7 @@ func cloudConnectionCommonSchemaExtras() map[string]*schema.Schema {
 				// Thus, if it is created with inactive state at the
 				// time of creation, it will go into configured state,
 				// which is technically the same hence suppressing diff.
+				// Similarly warning means the state is active with given warning hence suppressing diff.
 				return (oldValue == "CONFIGURED" && newValue == "INACTIVE") || (oldValue == "WARNING" && newValue == "ACTIVE")
 			},
 		},
