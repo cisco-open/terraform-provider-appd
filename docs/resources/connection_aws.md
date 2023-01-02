@@ -13,7 +13,7 @@ description: |-
 - To attach the `role_name` for role delegation user has to create resource `appdynamicscloud_connection_aws` for role delegation and resource `appdynamicscloud_connection_aws_role_attachment` with `role_name`.  
 - Supported [Services](#table--services) are listed below.
 
-~> **Note:** In case of Role Delegation AWS Connection the state will remain as `INCOMPLETE` until the role attachment is done. Once user attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will change to `CONFIGURED`. After the state become `CONFIGURED` user can change state to `ACTIVE` by terraform apply.
+~> **Note:** In case of Role Delegation AWS Connection the state will remain as `INCOMPLETE` until the role attachment is done. Once user attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will change to `CONFIGURED`. Once the state becomes `CONFIGURED`, user can change state to `ACTIVE` by terraform apply. If user does not attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will remain to `INCOMPLETE` and the resource will forces replace state.
 
 ## Example Usage
 
@@ -136,7 +136,7 @@ resource "appdynamicscloud_connection_aws" "example2" {
 
 - `configuration_details` (Block List, Max: 1) The Configuration Details for the Connection (see [below for nested schema](#nestedblock--configuration_details))
 - `description` (String) Description for this connection or configuration
-- `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
+- `state` (String) Connection state. Value which can be given: [ "ACTIVE", "INACTIVE" ]. All possible values: [ "INACTIVE", "ACTIVE", "PENDING CONFIGURATION", "INCOMPLETE", "CONFIGURED", "INSUFFICIENT LICENSE", "ERROR", "WARNING", "CRITICAL" ]
 
 ### Read-Only
 

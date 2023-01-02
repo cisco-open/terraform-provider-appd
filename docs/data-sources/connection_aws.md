@@ -35,7 +35,7 @@ data "appdynamicscloud_connection_aws" "example" {
 - `description` (String) Description for this connection or configuration
 - `display_name` (String) Name of the connection or configuration
 - `id` (String) The ID of this resource.
-- `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
+- `state` (String) Connection state. Value which can be given: [ "ACTIVE", "INACTIVE" ]. All possible values: [ "INACTIVE", "ACTIVE", "PENDING CONFIGURATION", "INCOMPLETE", "CONFIGURED", "INSUFFICIENT LICENSE", "ERROR", "WARNING", "CRITICAL" ]
 - `state_message` (String) Connection state message
 - `updated_at` (String) The RFC3339 timestamp
 
