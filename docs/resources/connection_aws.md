@@ -136,7 +136,7 @@ resource "appdynamicscloud_connection_aws" "example2" {
 
 - `configuration_details` (Block List, Max: 1) The Configuration Details for the Connection (see [below for nested schema](#nestedblock--configuration_details))
 - `description` (String) Description for this connection or configuration
-- `state` (String) Connection state. This can only be used if configuration_id is specified. Possible values: ["ACTIVE", "INACTIVE"]
+- `state` (String) Connection state. Value which can be given: [ "ACTIVE", "INACTIVE" ]. All possible values: [ "INACTIVE", "ACTIVE", "PENDING CONFIGURATION", "INCOMPLETE", "CONFIGURED", "INSUFFICIENT LICENSE", "ERROR", "WARNING", "CRITICAL" ]
 
 ### Read-Only
 
