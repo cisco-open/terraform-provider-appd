@@ -53,8 +53,8 @@ func CreateAccAccessClientAppDataSourceWithoutClientId(rName string) string {
 func CreateAccAccessClientAppDataSourceConfig(rName string) string {
 	resource := fmt.Sprintln(`
 	resource "appdynamicscloud_access_client_app" "example" {
-		display_name = "access client app test"
-		description = 123
+		display_name = "tfacc_acp"
+		description = "orchestrated by terraform during acceptance tests"
 		auth_type = "client_secret_basic" 
 	}
 
@@ -67,8 +67,8 @@ func CreateAccAccessClientAppDataSourceConfig(rName string) string {
 func CreateAccAccessClientAppUpdatedConfigDataSourceRandomAttr(key, value, rName string) string {
 	resource := fmt.Sprintf(`
 	resource "appdynamicscloud_access_client_app" "example" {
-		display_name = "access client app test"
-		description = 123
+		display_name = "tfacc_acp"
+		description = "orchestrated by terraform during acceptance tests"
 		auth_type = "client_secret_basic" 
 	}
 	

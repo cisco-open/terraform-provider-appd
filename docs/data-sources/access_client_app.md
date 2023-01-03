@@ -33,6 +33,7 @@ data "appdynamicscloud_access_client_app" "example" {
 - `display_name` (String) The display name for the client.
 - `has_rotated_secrets` (Boolean) Indicates if the client has rotated secrets. Rotated client secrets can be revoked.
 - `id` (String) The ID of this resource.
+- `rotated_secret_expires_at` (String) The RFC3339 timestamp when the rotated client secret will expire.
 - `updated_at` (String) The RFC3339 timestamp when the client was last updated.
 
 

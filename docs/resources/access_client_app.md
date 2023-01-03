@@ -8,23 +8,20 @@ description: |-
 # appdynamicscloud_access_client_app (Resource)
 
 
-~> **Note:** Service Principals cannot be managed by the credentials
-of another service principal. you need to sign in through your user credentials
-by login mode browser or headless in order to use this resource.
+~> **Note:** Service Principals cannot be managed by the credentials of another service principal. you need to sign in through your user credentials by login mode browser or headless in order to use this resource.
 
-~> **Note:** If you rotate and revoke secret at the same time, it will first perform
-the revoke operation and then rotate it.
+~> **Note:** If you rotate and revoke secret at the same time, it will first rotate the secret and then perform the revoke.
 
 ## Example Usage
 ```terraform
 resource "appdynamicscloud_access_client_app" "example" {
-  display_name = "AppDGrafanaPlugin "
+  display_name = "AppDGrafanaPlugin"
   description  = "This Service principal can be used for authentication which help to connect AppD cloud to grafana"
   auth_type    = "client_secret_basic"
 
-  rotate_secret             = "12/20/2022"
+  rotate_secret             = true
   revoke_previous_secret_in = "3D"
-  revoked_all_previous_at   = "12/29/2022"
+  revoked_all_previous_at   = true
 }
 ```
 
@@ -39,9 +36,9 @@ resource "appdynamicscloud_access_client_app" "example" {
 
 ### Optional
 
+- `revoke_now` (Boolean) Revokes all the rotated client secrets of the specified client.
 - `revoke_previous_secret_in` (String) Time duration of how long the previous secret should be active for. Acceptable values are `NOW`, `1D`, `3D`, `7D` and `30D`. Must be set when rotating a secret with rotate_secret.
-- `revoked_all_previous_at` (String) Revokes all the rotated client secrets of the specified client. The value must be in the format of `mm/dd/yyyy`, ideally the date at which all the secrets were revoked.
-- `rotate_secret` (String) Rotates the client secret of the specified service client. The input must be of `mm/dd/yyyy`. Not necessarily a valid date but ideally should be the date at which the secret is being rotated.
+- `rotate_secret` (Boolean) Rotates the client secret of the specified service client.
 
 ### Read-Only
 
