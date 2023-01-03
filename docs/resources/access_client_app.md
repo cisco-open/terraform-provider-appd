@@ -21,7 +21,7 @@ resource "appdynamicscloud_access_client_app" "example" {
 
   rotate_secret             = true
   revoke_previous_secret_in = "3D"
-  revoked_all_previous_at   = true
+  revoke_now                = true
 }
 ```
 
