@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"reflect"
 	"strings"
@@ -47,15 +46,15 @@ func dataSourceCloudQueryRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	listOfData := []interface{}{}
+	listOfQueryResponse := make([]interface{}, 0, 1)
 
-	err = json.Unmarshal(bytes, &listOfData)
+	queryResponse := []interface{}{}
+
+	err = json.Unmarshal(bytes, &queryResponse)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	// response := string(bytes)
-	// d.SetId(*query.Query)
-	// d.Set("response", response)
+	listOfQueryResponse = append(listOfQueryResponse, queryResponse)
 
 	cursor, flag := getCursor(bytes)
 
@@ -69,40 +68,35 @@ func dataSourceCloudQueryRead(ctx context.Context, d *schema.ResourceData, m int
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		tempList := []interface{}{}
-		err = json.Unmarshal(bytes, &tempList)
+		queryResponse := []interface{}{}
+		err = json.Unmarshal(bytes, &queryResponse)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
-		listOfData = append(listOfData, tempList...)
+		listOfQueryResponse = append(listOfQueryResponse, queryResponse)
 		cursor, flag = getCursor(bytes)
 	}
 
-	bytes, err = json.Marshal(&listOfData)
+	bytes, err = json.Marshal(&listOfQueryResponse)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	response := string(bytes)
+
 	d.SetId(*query.Query)
-	d.Set("response", response)
+	d.Set("response", string(bytes))
 	return nil
 }
 
 func getCursor(bytes []byte) (string, bool) {
 	contBytes, _ := container.ParseJSON(bytes)
 	link := contBytes.Index(1).Search("_links", "next", "href").Data()
-	fmt.Printf("CURSOR:%v", link)
+
 	if link == nil || (reflect.ValueOf(link).Kind() == reflect.Ptr && reflect.ValueOf(link).IsNil()) {
 		return "", false
 	} else {
-		curSlice := strings.Split(contBytes.Index(1).Search("_links", "next", "href").Data().(string), "=")
-		if len(curSlice) > 1 {
-			cur := curSlice[1]
-			cur = strings.Split(cur, "%")[0]
-			return cur, true
-		}
+		curSlice := strings.Split(contBytes.Index(1).Search("_links", "next", "href").Data().(string), "=")[1]
+		cur := strings.Split(curSlice, "%")[0]
+		return cur, true
 	}
-
-	return "", false
 }
