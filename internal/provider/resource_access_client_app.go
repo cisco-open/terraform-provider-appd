@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	applicationprincipalmanagement "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/applicationprincipalmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -11,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+var maxRetries = 1
 
 func resourceAccessClientApp() *schema.Resource {
 
@@ -28,15 +29,23 @@ func resourceAccessClientApp() *schema.Resource {
 
 		CustomizeDiff: customdiff.All(
 			func(ctx context.Context, d *schema.ResourceDiff, i interface{}) error {
-				_, rotateSecretIsPreset := d.GetOk("rotate_secret")
+				val, rotateSecretIsPreset := d.GetOk("rotate_secret")
 				_, revokeTimeoutIsPresent := d.GetOk("revoke_previous_secret_in")
 
+				errString := "revoke_previous_secret_in can only be used when rotate_secret is set to true"
+				err := fmt.Errorf(errString)
+
 				if !rotateSecretIsPreset && revokeTimeoutIsPresent {
-					return fmt.Errorf("revoke_previous_secret_in can only be used with rotate_secret when rotating a secret")
+					return err
+				}
+
+				if rotateSecretIsPreset && !val.(bool) && revokeTimeoutIsPresent {
+					return err
 				}
 
 				return nil
 			},
+
 			customdiff.If(
 				func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 					_, ok := d.GetOk("rotate_secret")
@@ -60,10 +69,10 @@ func resourceAccessClientApp() *schema.Resource {
 				Required:    true,
 			},
 			"description": {
-				Type:        schema.TypeString,
-				Description: "A user provided description of the client.",
+				Type:             schema.TypeString,
+				Description:      "A user provided description of the client.",
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringIsNotEmpty),
-				Required:    true,
+				Required:         true,
 			},
 			"auth_type": {
 				Type:             schema.TypeString,
@@ -94,10 +103,10 @@ func resourceAccessClientApp() *schema.Resource {
 			},
 
 			"rotate_secret": {
-				Type:             schema.TypeString,
-				Description:      "Rotates the client secret of the specified service client. The input must be of `mm/dd/yyyy`. Not necessarily a valid date but ideally should be the date at which the secret is being rotated.",
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validateDate),
+				Type:        schema.TypeBool,
+				Description: "Rotates the client secret of the specified service client.",
+				Optional:    true,
+				Default:     false,
 			},
 
 			"revoke_previous_secret_in": {
@@ -113,11 +122,18 @@ func resourceAccessClientApp() *schema.Resource {
 				Computed:    true,
 			},
 
-			"revoked_all_previous_at": {
-				Type:             schema.TypeString,
-				Description:      "Revokes all the rotated client secrets of the specified client. The value must be in the format of `mm/dd/yyyy`, ideally the date at which all the secrets were revoked.",
-				Optional:         true,
-				ValidateDiagFunc: validation.ToDiagFunc(validateDate),
+			"revoke_now": {
+				Type:        schema.TypeBool,
+				Description: "Revokes all the rotated client secrets of the specified client.",
+				Optional:    true,
+				Default:     false,
+				ValidateDiagFunc: validation.ToDiagFunc(func(i interface{}, s string) ([]string, []error) {
+					if i.(bool) {
+						return []string{"All previous secrets will be revoked with this action"}, nil
+					}
+
+					return nil, nil
+				}),
 			},
 		},
 	}
@@ -167,11 +183,18 @@ func resourceAccessClientAppCreate(ctx context.Context, d *schema.ResourceData, 
 
 	resp, httpResp, err := apiClient.ServicesApi.CreateServiceClient(myctx).ServiceClientRequest(serviceClientRequest).Execute()
 	if err != nil {
+		if httpResp.StatusCode == 504 && maxRetries != 0 {
+			maxRetries -= 1
+			return resourceAccessClientAppCreate(ctx, d, m)
+		}
 		return errRespToDiag(err, httpResp)
 	}
 
 	d.SetId(resp.GetId())
 	d.Set("client_secret", resp.GetClientSecret())
+
+	rotateSecret(d, m)
+	revokeSecret(d, m)
 
 	return resourceAccessClientAppRead(ctx, d, m)
 }
@@ -213,38 +236,9 @@ func resourceAccessClientAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		flattenAccessClientApp(d, r)
 	}
 
-	if d.HasChange("revoked_all_previous_at") {
-		// resp only contains status and message acknowledging that secrets have been revoked
-		// thus no need to flatten here
-		_, httpResp, err := apiClient.ServicesApi.RevokeServiceClientSecret(myctx, d.Id()).Execute()
-		if err != nil {
-			errRespToDiag(err, httpResp)
-		}
+	rotateSecret(d, m)
 
-		// d.SetId(d.Id())
-	}
-
-	rotationRequest := *applicationprincipalmanagement.NewRotationRequest()
-
-	if d.HasChange("rotate_secret") {
-		revokePreviousSecretIn := d.Get("revoke_previous_secret_in").(string)
-		if revokePreviousSecretIn == "NOW" {
-			revokePreviousSecretIn = "P0D"
-		} else {
-			revokePreviousSecretIn = "P" + revokePreviousSecretIn
-		}
-
-		rotationRequest.SetRevokeRotatedAfter(revokePreviousSecretIn)
-
-		resp, httpResp, err := apiClient.ServicesApi.RotateServiceClientSecret(myctx, d.Id()).RotationRequest(rotationRequest).Execute()
-		if err != nil {
-			errRespToDiag(err, httpResp)
-		}
-
-		// d.SetId(resp.GetClientId())
-		d.Set("client_secret", resp.GetClientSecret())
-		d.Set("rotated_secret_expires_at", resp.GetRotatedSecretExpiresAt())
-	}
+	revokeSecret(d, m)
 
 	// after rotate, get updatedAt, hasRotated etc..
 	return resourceAccessClientAppRead(ctx, d, m)
@@ -263,17 +257,53 @@ func resourceAccessClientAppDelete(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func validateDate(i interface{}, s string) ([]string, []error) {
-	rotateSecret, _ := i.(string)
-	matched, err := regexp.MatchString(`\d{1,2}/\d{1,2}/\d{4}`, rotateSecret)
-	if err != nil {
-		return nil, []error{err}
+func rotateSecret(d *schema.ResourceData, m interface{}) {
+	myctx, _, apiClient := initializeApplicationPrincipalManagementClient(m)
+
+	val, ok := d.GetOk("rotate_secret")
+	if val.(bool) && ok {
+		rotationRequest := getRotationRequest(d.Get("revoke_previous_secret_in").(string))
+
+		resp, httpResp, err := apiClient.ServicesApi.RotateServiceClientSecret(myctx, d.Id()).RotationRequest(rotationRequest).Execute()
+		if err != nil {
+			errRespToDiag(err, httpResp)
+		}
+
+		// d.SetId(resp.GetClientId())
+		d.Set("client_secret", resp.GetClientSecret())
+		d.Set("rotated_secret_expires_at", resp.GetRotatedSecretExpiresAt())
+		d.Set("rotate_secret", false)
+		d.Set("revoke_previous_secret_in", "")
+	}
+}
+
+func revokeSecret(d *schema.ResourceData, m interface{}) {
+	myctx, _, apiClient := initializeApplicationPrincipalManagementClient(m)
+
+	val, ok := d.GetOk("revoke_now")
+	if ok && val.(bool) {
+		// resp only contains status and message acknowledging that secrets have been revoked
+		// thus no need to flatten here
+		_, httpResp, err := apiClient.ServicesApi.RevokeServiceClientSecret(myctx, d.Id()).Execute()
+		if err != nil {
+			errRespToDiag(err, httpResp)
+		}
+
+		d.Set("revoke_now", false)
+	}
+}
+
+func getRotationRequest(revokePreviousIn string) applicationprincipalmanagement.RotationRequest {
+	rotationRequest := *applicationprincipalmanagement.NewRotationRequest()
+
+	revokePreviousSecretIn := revokePreviousIn
+	if revokePreviousSecretIn == "NOW" {
+		revokePreviousSecretIn = "P0D"
+	} else {
+		revokePreviousSecretIn = "P" + revokePreviousSecretIn
 	}
 
-	if !matched {
-		err := fmt.Errorf("needs to be anything in the form of mm/dd/yyyy. ideally current date")
-		return nil, []error{err}
-	}
+	rotationRequest.SetRevokeRotatedAfter(revokePreviousSecretIn)
 
-	return nil, nil
+	return rotationRequest
 }

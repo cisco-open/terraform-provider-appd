@@ -13,8 +13,7 @@ func dataSourceAccessClientApp() *schema.Resource {
 	delete(dsSchema, "client_secret")
 	delete(dsSchema, "rotate_secret")
 	delete(dsSchema, "revoke_previous_secret_in")
-	delete(dsSchema, "rotated_secret_expires_at")
-	delete(dsSchema, "revoked_all_previous_at")
+	delete(dsSchema, "revoke_now")
 
 	dsSchema["client_id"] = &schema.Schema{
 		Type:        schema.TypeString,
