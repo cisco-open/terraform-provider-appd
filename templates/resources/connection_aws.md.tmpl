@@ -13,7 +13,7 @@ description: |-
 - To attach the `role_name` for role delegation user has to create resource `appdynamicscloud_connection_aws` for role delegation and resource `appdynamicscloud_connection_aws_role_attachment` with `role_name`.  
 - Supported [Services](#table--services) are listed below.
 
-~> **Note:** In case of Role Delegation AWS Connection the state will remain as `INCOMPLETE` until the role attachment is done. Once user attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will change to `CONFIGURED`. After the state become `CONFIGURED` user can change state to `ACTIVE` by terraform apply. If user does not attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will remain to `INCOMPLETE` and the resource will forces replace state.
+~> **Note:** In case of Role Delegation AWS Connection the state will remain as `INCOMPLETE` until the role attachment is done. Once user attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will change to `CONFIGURED`. Once the state becomes `CONFIGURED`, user can change state to `ACTIVE` by terraform apply. If user does not attach role_name using resource `appdynamicscloud_connection_aws_role_attachment` the state will remain to `INCOMPLETE` and the resource will forces replace state.
 
 {{ if .HasExample -}}
 ## Example Usage

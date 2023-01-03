@@ -5,7 +5,7 @@ description: |-
   AppDynamicsCloud Provider provides resources to interact with AppDynamics Cloud Platform services.
 ---
 
-# appdynamicscloud Provider
+# AppDynamics Cloud Provider
 
 
 AppDynamics drives business outcomes by putting application health in the context of your business, while providing unparalleled observability across tools, services and infrastructure on the backend.
