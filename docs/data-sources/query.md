@@ -8,7 +8,8 @@ description: |-
 
 # appdynamicscloud_query (Data Source)
 
-
+Unified Query Language (UQL) is AppDynamics domain-specific language used to observe data in AppDynamics Cloud.
+[Unified Query Language User Guide](https://developer.cisco.com/docs/appdynamics/query-service/#!unified-query-langage-user-guide-introduction/unified-query-language-user-guide)
 
 ## Example Usage
 
@@ -29,5 +30,3 @@ data "appdynamicscloud_query" "example" {
 
 - `id` (String) The ID of this resource.
 - `response` (String) Query Response.
-
-
