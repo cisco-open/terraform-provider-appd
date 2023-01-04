@@ -30,7 +30,7 @@ resource "appdynamicscloud_access_client_app" "example" {
 
 ### Required
 
-- `auth_type` (String) Supported authentication methods used to request oAuth tokens: `client_secret_basic` - The client credentials will be sent in the authorization header `client_secret_post` - The client credentials will be sent in the request body.
+- `auth_type` (String) Supported authentication methods used to request OAuth tokens: `client_secret_basic` - The client credentials will be sent in the authorization header `client_secret_post` - The client credentials will be sent in the request body.
 - `description` (String) A user provided description of the client.
 - `display_name` (String) The display name for the client.
 

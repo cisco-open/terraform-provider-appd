@@ -22,7 +22,7 @@ func resourceCloudConnectionAzure() *schema.Resource {
 			State: resourceCloudConnectionAzureImport,
 		},
 
-		CustomizeDiff: customdiff.All(serviceAtLeastOne),
+		CustomizeDiff: customdiff.All(serviceAtLeastOne, serviceCheckDuplicate),
 		SchemaVersion: 1,
 
 		Schema: getCloudConnectionAzureSchema(),
