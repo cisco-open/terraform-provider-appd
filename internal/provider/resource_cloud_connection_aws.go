@@ -28,6 +28,7 @@ func resourceCloudConnectionAWS() *schema.Resource {
 
 		CustomizeDiff: customdiff.All(
 			serviceAtLeastOne,
+			serviceCheckDuplicate,
 			awsRequiredAttributesCustomizeDiff,
 			customdiff.ForceNewIfChange("state", func(ctx context.Context, oldValue, newValue, meta interface{}) bool {
 				return (oldValue.(string) == "INCOMPLETE") && (newValue.(string) == "ACTIVE" || newValue.(string) == "INACTIVE")
