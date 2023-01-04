@@ -77,7 +77,7 @@ func resourceAccessClientApp() *schema.Resource {
 			"auth_type": {
 				Type:             schema.TypeString,
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"client_secret_basic", "client_secret_post"}, true)),
-				Description:      "Supported authentication methods used to request oAuth tokens: `client_secret_basic` - The client credentials will be sent in the authorization header `client_secret_post` - The client credentials will be sent in the request body.",
+				Description:      "Supported authentication methods used to request OAuth tokens: `client_secret_basic` - The client credentials will be sent in the authorization header `client_secret_post` - The client credentials will be sent in the request body.",
 				Required:         true,
 			},
 			"has_rotated_secrets": {
