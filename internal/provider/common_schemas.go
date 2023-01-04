@@ -9,6 +9,7 @@ import (
 )
 
 const serviceEmptyErrorMsg = "At Least one services is required while updating, services cannot be updated as empty."
+const serviceDuplicateErrorMsg = "duplicate services should not be given."
 
 func getCloudConnectionAzureSchema() map[string]*schema.Schema {
 	return appendSchemas(
@@ -156,11 +157,11 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 						ConflictsWith: []string{"connection_details.0.account_id"},
 					},
 					"secret_access_key": {
-						Type:          schema.TypeString,
-						Description:   "The secret access key is one of two access keys needed to authenticate to AWS. The other is an access key ID. The secret access key is only available once, when you create it. Download the generated secret access key and save in a secure location. If the secret access key is lost or deleted, you must create a new one. You need access keys to make programmatic calls using the AWS CLI, AWS Tools, or PowerShell.",
-						Optional:      true,
-						Sensitive:     true,
-						ConflictsWith: []string{"connection_details.0.account_id"},
+						Type:        schema.TypeString,
+						Description: "The secret access key is one of two access keys needed to authenticate to AWS. The other is an access key ID. The secret access key is only available once, when you create it. Download the generated secret access key and save in a secure location. If the secret access key is lost or deleted, you must create a new one. You need access keys to make programmatic calls using the AWS CLI, AWS Tools, or PowerShell.",
+						Optional:    true,
+						Sensitive:   true,
+						// ConflictsWith: []string{"connection_details.0.account_id"},
 					},
 
 					// computed for aws access_key
@@ -386,6 +387,20 @@ func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface
 		rd.SetNew("configuration_details_service_default", false)
 	} else if length == 0 && exist == true && val == false {
 		return fmt.Errorf(serviceEmptyErrorMsg)
+	}
+	return nil
+}
+func serviceCheckDuplicate(ctx context.Context, rd *schema.ResourceDiff, i interface{}) error {
+	names := make(map[string]string)
+	if len(rd.GetRawConfig().GetAttr("configuration_details").AsValueSlice()) > 0 {
+		values := rd.GetRawConfig().GetAttr("configuration_details").AsValueSlice()[0].GetAttr("services").AsValueSet().Values()
+		for _, value := range values {
+			name := value.AsValueMap()["name"].AsString()
+			if _, ok := names[name]; ok {
+				return fmt.Errorf(serviceDuplicateErrorMsg)
+			}
+			names[name] = name
+		}
 	}
 	return nil
 }
