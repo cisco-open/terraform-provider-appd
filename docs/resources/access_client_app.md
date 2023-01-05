@@ -10,7 +10,7 @@ description: |-
 
 ~> **Note:** Service Principals cannot be managed by the credentials of another service principal. you need to sign in through your user credentials by login mode browser or headless in order to use this resource.
 
-~> **Note:** If you rotate and revoke secret at the same time, it will first rotate the secret and then perform the revoke.
+~> **Note:** Rotate and Revoke operations can't be performed simultaneously
 
 ## Example Usage
 ```terraform
@@ -36,9 +36,9 @@ resource "appdynamicscloud_access_client_app" "example" {
 
 ### Optional
 
-- `revoke_now` (Boolean) Revokes all the rotated client secrets of the specified client.
+- `revoke_now` (Boolean) Revokes all the rotated client secrets of the specified client. Defaults to false.
 - `revoke_previous_secret_in` (String) Time duration of how long the previous secret should be active for. Acceptable values are `NOW`, `1D`, `3D`, `7D` and `30D`. Must be set when rotating a secret with rotate_secret.
-- `rotate_secret` (Boolean) Rotates the client secret of the specified service client.
+- `rotate_secret` (Boolean) Rotates the client secret of the specified service client. Defaults to false.
 
 ### Read-Only
 
