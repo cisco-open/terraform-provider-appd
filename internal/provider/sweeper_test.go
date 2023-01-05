@@ -2,14 +2,15 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
+	client "github.com/aniketk-crest/appdynamicscloud-go-client"
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
+	"github.com/aniketk-crest/terraform-provider-appdynamics/internal/auth"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const testPrefix = "TestAcc"
@@ -85,19 +86,37 @@ func connectionAWSSweeper(_ string) error {
 	return nil
 }
 func sharedClient() interface{} {
-	d := schema.ResourceData{}
-	d.Set("client_id", os.Getenv("APPDYNAMICS_CLIENT_ID"))
-	d.Set("client_secret", os.Getenv("APPDYNAMICS_CLIENT_SECRET"))
-	d.Set("tenant_name", os.Getenv("APPDYNAMICS_TENANT_NAME"))
-	d.Set("username", os.Getenv("APPDYNAMICS_USERNAME"))
-	d.Set("password", os.Getenv("APPDYNAMICS_PASSWORD"))
-	d.Set("login_mode", os.Getenv("APPDYNAMICS_LOGIN_MODE"))
-	d.Set("save_token", os.Getenv("APPDYNAMICS_SAVE_TOKEN"))
+	client_id := os.Getenv("APPDYNAMICS_CLIENT_ID")
+	client_secret := os.Getenv("APPDYNAMICS_CLIENT_SECRET")
+	tenant_name := os.Getenv("APPDYNAMICS_TENANT_NAME")
+	username := os.Getenv("APPDYNAMICS_USERNAME")
+	password := os.Getenv("APPDYNAMICS_PASSWORD")
+	login_mode := os.Getenv("APPDYNAMICS_LOGIN_MODE")
+	save_token, _ := strconv.ParseBool(os.Getenv("APPDYNAMICS_SAVE_TOKEN"))
+	tenantId, _ := lookupTenantId(tenant_name)
 
-	config, diags := configureClient(context.Background(), &d)
-	for _, diag := range diags {
-		fmt.Errorf("%v %v %v", diag.Detail, diag.Severity, diag.Summary)
-		return nil
+	loginCtx := context.WithValue(context.Background(), auth.MODE, login_mode)
+	if login_mode == "headless" {
+		loginCtx = context.WithValue(loginCtx, auth.USERNAME, username)
+		loginCtx = context.WithValue(loginCtx, auth.PASSWORD, password)
+	} else if login_mode == "service_principal" {
+		loginCtx = context.WithValue(loginCtx, auth.CLIENT_ID, client_id)
+		loginCtx = context.WithValue(loginCtx, auth.CLIENT_SECRET, client_secret)
 	}
+
+	token, _ := auth.Login(tenant_name, tenantId, save_token, loginCtx)
+
+	// CONFIGURE API CLIENT
+	configuration := client.NewConfiguration()
+	configuration.Debug = true
+
+	myctx := context.WithValue(context.Background(), client.ContextServerVariables, map[string]string{
+		"tenant-name": tenant_name,
+	})
+	myctx = context.WithValue(myctx, client.ContextAccessToken, token)
+
+	// TERRAFORM CONFIG
+	config := config{configuration: configuration, ctx: myctx}
+
 	return config
 }

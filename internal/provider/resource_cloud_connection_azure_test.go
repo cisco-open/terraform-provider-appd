@@ -20,9 +20,9 @@ var resourceConnectionAzureTest = map[string]interface{}{
 	},
 
 	"description": map[string]interface{}{
-		"valid":           []interface{}{"p5bmblr2eg", "w0m0pobo1v", "h9mauw3xiw", "6ofktj75lf"},
+		"valid":           []interface{}{"TestAcc_p5bmblr2eg", "TestAcc_w0m0pobo1v", "TestAcc_h9mauw3xiw", "TestAcc_6ofktj75lf"},
 		"invalid":         []interface{}{10, 12.43},
-		"multiple_valids": []interface{}{"2n37hadx3z", "d4jvucj3hm", "b258wb7hrp", "xnwi5exfnb", "6qvq7w9tw7", "qytqvhv28h", "giv8hqi4yv", "aecbg3ws1v", "t2ujm0uoc2", "68p2wgp8m5", "mydjz5hn14", "6g4tz5t04o", "xx6212mbaw", "gf4zfyoj7g", "o1w9033049"},
+		"multiple_valids": []interface{}{"TestAcc_2n37hadx3z", "TestAcc_d4jvucj3hm", "TestAcc_b258wb7hrp", "TestAcc_xnwi5exfnb", "TestAcc_6qvq7w9tw7", "TestAcc_qytqvhv28h", "TestAcc_giv8hqi4yv", "TestAcc_aecbg3ws1v", "TestAcc_t2ujm0uoc2", "TestAcc_68p2wgp8m5", "TestAcc_mydjz5hn14", "TestAcc_6g4tz5t04o", "TestAcc_xx6212mbaw", "TestAcc_gf4zfyoj7g", "TestAcc_o1w9033049"},
 	},
 
 	"state": map[string]interface{}{
