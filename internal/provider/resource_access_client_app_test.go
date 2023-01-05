@@ -700,3 +700,102 @@ func createAccessClientAppConfig(configSlice []string) string {
 
 	return str
 }
+
+func TestAccessClientApp_CustomDiff_RotateSecretValidCombinations(t *testing.T) {
+	cases := []struct {
+		rotateSecretIsPresent  bool
+		rotateSecretVal        bool
+		revokeTimeoutIsPresent bool
+		expectErr              bool
+		expectErrMsg           string
+	}{
+		{
+			rotateSecretIsPresent:  false,
+			rotateSecretVal:        false,
+			revokeTimeoutIsPresent: false,
+			expectErr:              false,
+		},
+		{
+			rotateSecretIsPresent:  false,
+			rotateSecretVal:        false,
+			revokeTimeoutIsPresent: true,
+			expectErr:              true,
+			expectErrMsg:           "revoke_previous_secret_in can only be used when rotate_secret is set to true",
+		},
+		{
+			rotateSecretIsPresent:  true,
+			rotateSecretVal:        false,
+			revokeTimeoutIsPresent: false,
+			expectErr:              false,
+		},
+		{
+			rotateSecretIsPresent:  true,
+			rotateSecretVal:        false,
+			revokeTimeoutIsPresent: true,
+			expectErr:              true,
+			expectErrMsg:           "revoke_previous_secret_in can only be used when rotate_secret is set to true",
+		},
+		{
+			rotateSecretIsPresent:  true,
+			rotateSecretVal:        true,
+			revokeTimeoutIsPresent: false,
+			expectErr:              true,
+			expectErrMsg:           "revoke_previous_secret_in must be set with rotate_secret",
+		},
+		{
+			rotateSecretIsPresent:  true,
+			rotateSecretVal:        true,
+			revokeTimeoutIsPresent: true,
+			expectErr:              false,
+		},
+	}
+
+	for _, c := range cases {
+		err := customDiffRotateSecretCheck(c.rotateSecretIsPresent, c.rotateSecretVal, c.revokeTimeoutIsPresent)
+
+		if c.expectErr && err == nil {
+			// if error is expected but got nil
+			t.Fatalf("Expected combination of %v, %v and %v to throw err, but got nil", c.rotateSecretIsPresent, c.rotateSecretVal, c.revokeTimeoutIsPresent)
+		} else if c.expectErr && err.Error() != c.expectErrMsg {
+			// if error is expected but got different error
+			t.Fatalf("Expected combination of %v, %v and %v to throw err %v, but got %v", c.rotateSecretIsPresent, c.rotateSecretVal, c.revokeTimeoutIsPresent, c.expectErrMsg, err.Error())
+		}
+
+	}
+}
+
+func TestAccessClientApp_GetRotationRequest(t *testing.T) {
+	cases := []struct {
+		revokePreviousSecretIn string
+		expectedValue          string
+	}{
+		{
+			revokePreviousSecretIn: "NOW",
+			expectedValue:          "P0D",
+		},
+		{
+			revokePreviousSecretIn: "1D",
+			expectedValue:          "P1D",
+		},
+		{
+			revokePreviousSecretIn: "3D",
+			expectedValue:          "P3D",
+		},
+		{
+			revokePreviousSecretIn: "7D",
+			expectedValue:          "P7D",
+		},
+		{
+			revokePreviousSecretIn: "30D",
+			expectedValue:          "P31D",
+		},
+	}
+
+	for _, c := range cases {
+		out := getRotationRequest(c.revokePreviousSecretIn)
+
+		if out.GetRevokeRotatedAfter().(string) != c.expectedValue {
+			testErrorMessage(c.revokePreviousSecretIn, c.expectedValue, out)
+		}
+	}
+}

@@ -568,8 +568,7 @@ func CreateAccConnectionAwsRoleConfigWithOptional(rName string) string {
 
 func generateStepForUpdatedRequiredAttrConnectionAwsRole(rName string, resourceName string, connectionAwsRole_default, connectionAwsRole_updated *cloudconnectionapi.ConnectionResponse) []resource.TestStep {
 	testSteps := make([]resource.TestStep, 0, 1)
-	var value interface{}
-	value = searchInObject(resourceConnectionAwsRoleTest, "display_name.valid.1")
+	value := searchInObject(resourceConnectionAwsRoleTest, "display_name.valid.1")
 	testSteps = append(testSteps, resource.TestStep{
 		Config: CreateAccConnectionAwsRoleUpdateRequiredDisplayName(rName),
 		Check: resource.ComposeTestCheckFunc(
@@ -2007,6 +2006,7 @@ func testAccCheckAppdynamicscloudConnectionAwsRoleIdEqual(connectionAwsRole1, co
 	}
 }
 
+//lint:ignore U1000 might come in handy in the future
 func testAccCheckAppdynamicscloudConnectionAwsRoleIdNotEqual(connectionAwsRole1, connectionAwsRole2 *cloudconnectionapi.ConnectionResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if connectionAwsRole1.Id == connectionAwsRole2.Id {
@@ -2131,14 +2131,13 @@ func createConnectionAwsRoleConfig(configSlice []string) string {
 }
 
 var role_attachment string = fmt.Sprintf(`
-
-  resource "appdynamicscloud_connection_aws_role_attachment" "attachment" {
+resource "appdynamicscloud_connection_aws_role_attachment" "attachment" {
     connection_id = appdynamicscloud_connection_aws.test.id
     role_name = aws_iam_role.role.name
 }
 
 resource "aws_iam_role" "role" {
-  name = "test-role-2"
+  name = "%v"
 
   assume_role_policy = <<EOF
 {
@@ -2162,7 +2161,7 @@ EOF
 }
 
 resource "aws_iam_policy" "policy" {
-  name        = "test-policy-2"
+  name        = "%v"
   description = "A test policy 2"
 
   policy = <<EOF
@@ -2206,4 +2205,4 @@ resource "aws_iam_role_policy_attachment" "test-attach" {
   role       = aws_iam_role.role.name
   policy_arn = aws_iam_policy.policy.arn
 }
-`)
+`, makeTestVariable(acctest.RandString(5)), makeTestVariable(acctest.RandString(5)))

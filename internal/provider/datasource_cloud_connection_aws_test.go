@@ -59,6 +59,7 @@ func TestAccAppdynamicscloudConnectionAwsDataSource_Basic(t *testing.T) {
 }
 func CreateAccConnectionAwsDataSourceWithoutConnectionId(rName string) string {
 	resource := CreateAccConnectionAwsAccessConfigWithOptional(rName)
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 			data "appdynamicscloud_connection_aws" "test" {
 			}
@@ -67,6 +68,7 @@ func CreateAccConnectionAwsDataSourceWithoutConnectionId(rName string) string {
 }
 func CreateAccConnectionAwsDataSourceConfig(rName string) string {
 	resource := CreateAccConnectionAwsAccessConfigWithOptional(rName)
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 	data "appdynamicscloud_connection_aws" "test" {
 		connection_id = appdynamicscloud_connection_aws.test.id

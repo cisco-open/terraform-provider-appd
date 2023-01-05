@@ -29,37 +29,11 @@ func resourceAccessClientApp() *schema.Resource {
 
 		CustomizeDiff: customdiff.All(
 			func(ctx context.Context, d *schema.ResourceDiff, i interface{}) error {
-				val, rotateSecretIsPreset := d.GetOk("rotate_secret")
+				rotateSecretVal, rotateSecretIsPresent := d.GetOk("rotate_secret")
 				_, revokeTimeoutIsPresent := d.GetOk("revoke_previous_secret_in")
 
-				errString := "revoke_previous_secret_in can only be used when rotate_secret is set to true"
-				err := fmt.Errorf(errString)
-
-				if !rotateSecretIsPreset && revokeTimeoutIsPresent {
-					return err
-				}
-
-				if rotateSecretIsPreset && !val.(bool) && revokeTimeoutIsPresent {
-					return err
-				}
-
-				return nil
+				return customDiffRotateSecretCheck(rotateSecretIsPresent, rotateSecretVal.(bool), revokeTimeoutIsPresent)
 			},
-
-			customdiff.If(
-				func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
-					_, ok := d.GetOk("rotate_secret")
-					return ok
-				},
-				func(ctx context.Context, d *schema.ResourceDiff, i interface{}) error {
-					_, ok := d.GetOk("revoke_previous_secret_in")
-					if !ok {
-						return fmt.Errorf("revoke_previous_secret_in must be set with rotate_secret")
-					}
-
-					return nil
-				},
-			),
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -306,4 +280,23 @@ func getRotationRequest(revokePreviousIn string) applicationprincipalmanagement.
 	rotationRequest.SetRevokeRotatedAfter(revokePreviousSecretIn)
 
 	return rotationRequest
+}
+
+func customDiffRotateSecretCheck(rotateSecretIsPresent, rotateSecretVal, revokeTimeoutIsPresent bool) error {
+	errString := "revoke_previous_secret_in can only be used when rotate_secret is set to true"
+	err := fmt.Errorf(errString)
+
+	if !rotateSecretIsPresent && revokeTimeoutIsPresent {
+		return err
+	}
+
+	if rotateSecretIsPresent && !rotateSecretVal && revokeTimeoutIsPresent {
+		return err
+	}
+
+	if rotateSecretIsPresent && !revokeTimeoutIsPresent {
+		return fmt.Errorf("revoke_previous_secret_in must be set with rotate_secret")
+	}
+
+	return nil
 }

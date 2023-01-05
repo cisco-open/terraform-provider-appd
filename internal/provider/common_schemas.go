@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const serviceEmptyErrorMsg = "At Least one services is required while updating, services cannot be updated as empty."
+const serviceEmptyErrorMsg = "at Least one services is required while updating, services cannot be updated as empty"
 const serviceDuplicateErrorMsg = "duplicate services should not be given."
 
 func getCloudConnectionAzureSchema() map[string]*schema.Schema {
@@ -144,11 +144,11 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"access_type": {
-						Type:         schema.TypeString,
-						Description:  "Connection type discriminator",
-						ValidateFunc: validation.StringInSlice([]string{"role_delegation", "access_key"}, false),
-						Required:     true,
-						ForceNew:     true,
+						Type:             schema.TypeString,
+						Description:      "Connection type discriminator",
+						ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"role_delegation", "access_key"}, false)),
+						Required:         true,
+						ForceNew:         true,
 					},
 					"access_key_id": {
 						Type:          schema.TypeString,
@@ -385,7 +385,7 @@ func serviceAtLeastOne(ctx context.Context, rd *schema.ResourceDiff, i interface
 		rd.SetNew("configuration_details_service_default", true)
 	} else if length > 0 {
 		rd.SetNew("configuration_details_service_default", false)
-	} else if length == 0 && exist == true && val == false {
+	} else if length == 0 && exist && val == false {
 		return fmt.Errorf(serviceEmptyErrorMsg)
 	}
 	return nil
