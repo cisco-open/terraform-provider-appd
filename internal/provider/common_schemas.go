@@ -145,7 +145,7 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"access_type": {
 						Type:             schema.TypeString,
-						Description:      "Connection type discriminator",
+						Description:      "Connection type discriminator, supported types are `role_delegation` and `access_key`.",
 						ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"role_delegation", "access_key"}, false)),
 						Required:         true,
 						ForceNew:         true,
