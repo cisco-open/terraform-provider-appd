@@ -104,7 +104,7 @@ func resourceAccessClientApp() *schema.Resource {
 
 			"rotate_secret": {
 				Type:        schema.TypeBool,
-				Description: "Rotates the client secret of the specified service client.",
+				Description: "Rotates the client secret of the specified service client. Defaults to false.",
 				Optional:    true,
 				Default:     false,
 			},
@@ -114,6 +114,7 @@ func resourceAccessClientApp() *schema.Resource {
 				Description:      "Time duration of how long the previous secret should be active for. Acceptable values are `NOW`, `1D`, `3D`, `7D` and `30D`. Must be set when rotating a secret with rotate_secret.",
 				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"NOW", "1D", "3D", "7D", "30D"}, false)),
 				Optional:         true,
+				ConflictsWith:    []string{"revoke_now"},
 			},
 
 			"rotated_secret_expires_at": {
@@ -124,12 +125,12 @@ func resourceAccessClientApp() *schema.Resource {
 
 			"revoke_now": {
 				Type:        schema.TypeBool,
-				Description: "Revokes all the rotated client secrets of the specified client.",
+				Description: "Revokes all the rotated client secrets of the specified client. Defaults to false. Please note that this cannot be used along with rotate_secret. If you wish to rotate the secret to a newer version and revoke the current one immediately, use the `revoke_previous_secret_in` and set it to `now`",
 				Optional:    true,
 				Default:     false,
 				ValidateDiagFunc: validation.ToDiagFunc(func(i interface{}, s string) ([]string, []error) {
 					if i.(bool) {
-						return []string{"All previous secrets will be revoked with this action"}, nil
+						return []string{"All previous secrets will be revoked if present with this action"}, nil
 					}
 
 					return nil, nil
