@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const serviceEmptyErrorMsg = "at Least one services is required while updating, services cannot be updated as empty"
-const serviceDuplicateErrorMsg = "duplicate services should not be given."
+const serviceEmptyErrorMsg = "at least one services is required while updating, services cannot be updated as empty"
+const serviceDuplicateErrorMsg = "duplicate services should not be given"
 
 func getCloudConnectionAzureSchema() map[string]*schema.Schema {
 	return appendSchemas(

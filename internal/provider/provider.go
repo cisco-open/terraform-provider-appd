@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	client "github.com/aniketk-crest/appdynamicscloud-go-client"
 	"github.com/aniketk-crest/terraform-provider-appdynamics/internal/auth"
