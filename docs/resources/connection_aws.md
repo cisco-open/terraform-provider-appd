@@ -152,7 +152,7 @@ resource "appdynamicscloud_connection_aws" "example2" {
 
 Required:
 
-- `access_type` (String) Connection type discriminator
+- `access_type` (String) Connection type discriminator, supported types are `role_delegation` and `access_key`.
 
 Optional:
 

@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const serviceEmptyErrorMsg = "at Least one services is required while updating, services cannot be updated as empty"
-const serviceDuplicateErrorMsg = "duplicate services should not be given."
+const serviceEmptyErrorMsg = "at least one services is required while updating, services cannot be updated as empty"
+const serviceDuplicateErrorMsg = "duplicate services should not be given"
 
 func getCloudConnectionAzureSchema() map[string]*schema.Schema {
 	return appendSchemas(
@@ -145,7 +145,7 @@ func cloudConnectionDetailsAWSSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"access_type": {
 						Type:             schema.TypeString,
-						Description:      "Connection type discriminator",
+						Description:      "Connection type discriminator, supported types are `role_delegation` and `access_key`.",
 						ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice([]string{"role_delegation", "access_key"}, false)),
 						Required:         true,
 						ForceNew:         true,

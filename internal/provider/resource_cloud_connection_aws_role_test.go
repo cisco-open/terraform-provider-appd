@@ -26,9 +26,9 @@ var resourceConnectionAwsRoleTest = map[string]interface{}{
 	},
 
 	"description": map[string]interface{}{
-		"valid":           []interface{}{"a4azty49iw", "2e10vrjady", "h5zyu013gw", "9t2z4sgyfd"},
+		"valid":           []interface{}{"TestAcc_a4azty49iw", "TestAcc_2e10vrjady", "TestAcc_h5zyu013gw", "TestAcc_9t2z4sgyfd"},
 		"invalid":         []interface{}{10, 12.43},
-		"multiple_valids": []interface{}{"tjl9ithmen", "w7mc5wonx6", "6ejzhbd0bs", "2018j431yq", "9apw3rbx7m", "62bmkn0oxq", "o93crtl3m2", "unht0g3tqz", "50aynd1ltp", "d43uivb409", "aqujh09yo5", "b1anqkem7c", "h618adqt7b", "y7leai85xi", "a8an6sa0hi"},
+		"multiple_valids": []interface{}{"TestAcc_tjl9ithmen", "TestAcc_w7mc5wonx6", "TestAcc_6ejzhbd0bs", "TestAcc_2018j431yq", "TestAcc_9apw3rbx7m", "TestAcc_62bmkn0oxq", "TestAcc_o93crtl3m2", "TestAcc_unht0g3tqz", "TestAcc_50aynd1ltp", "TestAcc_d43uivb409", "TestAcc_aqujh09yo5", "TestAcc_b1anqkem7c", "TestAcc_h618adqt7b", "TestAcc_y7leai85xi", "TestAcc_a8an6sa0hi"},
 	},
 
 	"state": map[string]interface{}{

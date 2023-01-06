@@ -5,15 +5,20 @@ import (
 	"fmt"
 )
 
-var LOGIN_HEADLESS = "headless"
-var LOGIN_WITH_BROWSER = "browser"
+const (
+	LOGIN_HEADLESS               = "headless"
+	LOGIN_WITH_BROWSER           = "browser"
+	LOGIN_WITH_SERVICE_PRINCIPAL = "service_principal"
+)
 
 type credential string
 
 const (
-	USERNAME credential = "username"
-	PASSWORD credential = "password"
-	MODE     credential = "mode"
+	USERNAME      credential = "username"
+	PASSWORD      credential = "password"
+	CLIENT_ID     credential = "client_id"
+	CLIENT_SECRET credential = "client_secret"
+	MODE          credential = "mode"
 )
 
 var (
@@ -63,6 +68,11 @@ func Login(tenantName, tenantId string, saveToken bool, ctx context.Context) (st
 
 	} else if loginMode == LOGIN_WITH_BROWSER {
 		accessToken, err = loginWithBrowser()
+	} else if loginMode == LOGIN_WITH_SERVICE_PRINCIPAL {
+		clientId := ctx.Value(CLIENT_ID).(string)
+		clientSecret := ctx.Value(CLIENT_SECRET).(string)
+
+		accessToken, err = loginWithServicePrincipal(clientId, clientSecret, tenantName, tenantId)
 	}
 
 	if err != nil {
@@ -77,5 +87,5 @@ func Login(tenantName, tenantId string, saveToken bool, ctx context.Context) (st
 }
 
 func isValidLoginMode(mode string) bool {
-	return mode == LOGIN_HEADLESS || mode == LOGIN_WITH_BROWSER
+	return mode == LOGIN_HEADLESS || mode == LOGIN_WITH_BROWSER || mode == LOGIN_WITH_SERVICE_PRINCIPAL
 }

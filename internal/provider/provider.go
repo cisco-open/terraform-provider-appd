@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"golang.org/x/oauth2/clientcredentials"
 )
 
 func init() {
@@ -122,7 +120,6 @@ var required = map[string][]string{
 func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// GET ACCESS TOKEN
 	var token string
-	var diags diag.Diagnostics
 
 	loginMode := d.Get("login_mode").(string)
 
@@ -139,22 +136,18 @@ func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, 
 		return nil, diag.FromErr(err)
 	}
 
-	if loginMode == "service_principal" {
-		token, diags = getAccessToken(d)
-		if diags.HasError() {
-			return nil, diags
-		}
-	} else {
-		ctx := context.WithValue(context.Background(), auth.MODE, loginMode)
-		if loginMode == "headless" {
-			ctx = context.WithValue(ctx, auth.USERNAME, d.Get("username"))
-			ctx = context.WithValue(ctx, auth.PASSWORD, d.Get("password"))
-		}
+	loginCtx := context.WithValue(context.Background(), auth.MODE, loginMode)
+	if loginMode == "headless" {
+		loginCtx = context.WithValue(loginCtx, auth.USERNAME, d.Get("username"))
+		loginCtx = context.WithValue(loginCtx, auth.PASSWORD, d.Get("password"))
+	} else if loginMode == "service_principal" {
+		loginCtx = context.WithValue(loginCtx, auth.CLIENT_ID, d.Get("client_id"))
+		loginCtx = context.WithValue(loginCtx, auth.CLIENT_SECRET, d.Get("client_secret"))
+	}
 
-		token, err = auth.Login(tenantName, tenantId, d.Get("save_token").(bool), ctx)
-		if err != nil {
-			return nil, diag.FromErr(err)
-		}
+	token, err = auth.Login(tenantName, tenantId, d.Get("save_token").(bool), loginCtx)
+	if err != nil {
+		return nil, diag.FromErr(err)
 	}
 
 	// CONFIGURE API CLIENT
@@ -170,43 +163,6 @@ func configureClient(ctx context.Context, d *schema.ResourceData) (interface{}, 
 	config := config{configuration: configuration, ctx: myctx}
 
 	return config, nil
-}
-
-func getAccessToken(d *schema.ResourceData) (string, diag.Diagnostics) {
-	conf := clientcredentials.Config{}
-
-	conf.ClientID = d.Get("client_id").(string)
-	conf.ClientSecret = d.Get("client_secret").(string)
-
-	tenantName := d.Get("tenant_name").(string)
-	tenantId, err := lookupTenantId(tenantName)
-	if err != nil {
-		return "", diag.FromErr(err)
-	}
-
-	conf.TokenURL = fmt.Sprintf("https://%s.observe.appdynamics.com/auth/%s/default/oauth2/token", tenantName, tenantId)
-	log.Printf("calling %s", conf.TokenURL)
-
-	token, err := conf.Token(context.Background())
-
-	// The error string contains response body as json.
-	// parse it to display a more concise error message
-	if err != nil {
-		var resp map[string]interface{}
-
-		errRespJson := strings.Split(err.Error(), "Response: ")[1]
-		json.Unmarshal([]byte(errRespJson), &resp)
-
-		d := diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  resp["cause"].(string),
-			Detail:   resp["error_description"].(string),
-		}
-
-		return "", diag.Diagnostics{d}
-	}
-
-	return token.AccessToken, nil
 }
 
 func lookupTenantId(tenantName string) (string, error) {

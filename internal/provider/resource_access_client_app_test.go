@@ -19,9 +19,9 @@ var resourceAccessClientAppTest = map[string]interface{}{
 	},
 
 	"description": map[string]interface{}{
-		"valid":           []interface{}{"u2fbqws7od", "ivnrov2ug5", "64lxo2tqlu", "j2i5ocro03"},
+		"valid":           []interface{}{"TestAcc_u2fbqws7od", "TestAcc_ivnrov2ug5", "TestAcc_64lxo2tqlu", "TestAcc_j2i5ocro03"},
 		"invalid":         []interface{}{10, 12.43},
-		"multiple_valids": []interface{}{"vhlr5zo9b0", "92mq72kzg9", "wox9azec5l", "clplwuhu3q", "xxkabfo4y9", "oyyaiqjkpm"},
+		"multiple_valids": []interface{}{"TestAcc_vhlr5zo9b0", "TestAcc_92mq72kzg9", "TestAcc_wox9azec5l", "TestAcc_clplwuhu3q", "TestAcc_xxkabfo4y9", "TestAcc_oyyaiqjkpm"},
 	},
 
 	"auth_type": map[string]interface{}{
