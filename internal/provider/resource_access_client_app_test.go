@@ -56,7 +56,6 @@ func TestAccAppdynamicscloudAccessClientApp_Basic(t *testing.T) {
 	resourceName := "appdynamicscloud_access_client_app.test"
 
 	rName := makeTestVariable(acctest.RandString(5))
-	// rOther := makeTestVariable(acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -113,7 +112,6 @@ func TestAccAppdynamicscloudAccessClientApp_Basic(t *testing.T) {
 			},
 			{
 				Config: CreateAccAccessClientAppConfig(rName),
-				// ExpectNonEmptyPlan: true,
 			},
 		}, generateStepForUpdatedRequiredAttrAccessClientApp(rName, resourceName, &accessClientApp_default, &accessClientApp_updated)...),
 	})
@@ -143,7 +141,6 @@ func TestAccAppdynamicscloudAccessClientApp_Update(t *testing.T) {
 func TestAccAppdynamicscloudAccessClientApp_NegativeCases(t *testing.T) {
 	resourceName := "appdynamicscloud_access_client_app.test"
 
-	// [TODO]: Add makeTestVariable() to utils.go file
 	rName := makeTestVariable(acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
@@ -160,7 +157,6 @@ func TestAccAppdynamicscloudAccessClientApp_NegativeCases(t *testing.T) {
 
 func TestAccAppdynamicscloudAccessClientApp_MultipleCreateDelete(t *testing.T) {
 
-	// [TODO]: Add makeTestVariable() to utils.go file
 	rName := makeTestVariable(acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{

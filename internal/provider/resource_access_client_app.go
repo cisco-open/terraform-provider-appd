@@ -243,7 +243,6 @@ func rotateSecret(d *schema.ResourceData, m interface{}) {
 			errRespToDiag(err, httpResp)
 		}
 
-		// d.SetId(resp.GetClientId())
 		d.Set("client_secret", resp.GetClientSecret())
 		d.Set("rotated_secret_expires_at", resp.GetRotatedSecretExpiresAt())
 		d.Set("rotate_secret", false)
