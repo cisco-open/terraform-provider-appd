@@ -1,6 +1,6 @@
 # terraform-provider-appdynamicscloud
 
-The Terraform Appdynamicscloud provider is a plugin that allows Terraform to manage resources on Appdynamicscloud Platform.
+The Terraform AppDynamics Cloud provider is a plugin that allows Terraform to manage resources on AppDynamics Cloud Platform.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ $ make build
 If you are building the provider, follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory, run `terraform init` to initialize it.
 
 ex.
-```hcl
+```terraform
 #configure provider with your Cisco Appdynamics credentials.
 terraform {
   required_providers {
@@ -55,4 +55,10 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 
 ```sh
 $ make testacc
+```
+
+To remove dangling resources created during acceptance test, run `make sweep`.
+
+```sh
+$ make sweep
 ```
