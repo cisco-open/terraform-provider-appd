@@ -125,7 +125,7 @@ func resourceAccessClientApp() *schema.Resource {
 
 			"revoke_now": {
 				Type:        schema.TypeBool,
-				Description: "Revokes all the rotated client secrets of the specified client. Defaults to false.",
+				Description: "Revokes all the rotated client secrets of the specified client. Defaults to false. Please note that this cannot be used along with rotate_secret. If you wish to rotate the secret to a newer version and revoke the current one immediately, use the `revoke_previous_secret_in` and set it to `now`",
 				Optional:    true,
 				Default:     false,
 				ValidateDiagFunc: validation.ToDiagFunc(func(i interface{}, s string) ([]string, []error) {
