@@ -88,20 +88,6 @@ func resourceSchemaToDataSourceSchema(resourceSchema map[string]*schema.Schema) 
 // 	schema[key].Optional = true
 // }
 
-func appendSchema(a, b map[string]*schema.Schema) map[string]*schema.Schema {
-	c := map[string]*schema.Schema{}
-
-	for k, v := range a {
-		c[k] = v
-	}
-
-	for k, v := range b {
-		c[k] = v
-	}
-
-	return c
-}
-
 func appendSchemas(maps ...map[string]*schema.Schema) (result map[string]*schema.Schema) {
 	result = make(map[string]*schema.Schema)
 	for _, m := range maps {
@@ -120,7 +106,10 @@ func httpRespToMap(resp *http.Response) (map[string]interface{}, bool) {
 		return nil, false
 	}
 
-	json.Unmarshal(body, &m)
+	err = json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, false
+	}
 
 	return m, true
 }
@@ -184,9 +173,7 @@ func toSliceString(data []interface{}) []string {
 func toSliceInterface(data []string) []interface{} {
 	s := make([]interface{}, 0)
 	for _, v := range data {
-		var v1 interface{}
-		v1 = v
-		s = append(s, v1)
+		s = append(s, v)
 	}
 	return s
 }

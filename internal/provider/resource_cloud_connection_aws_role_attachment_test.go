@@ -2,17 +2,19 @@ package provider
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
 	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var resourceConnectionAwsRoleAttachmentTest = map[string]string{
-	"account_id": "860850072464",
-	"role_name":  "test-role-1",
+	"account_id": os.Getenv("TEST_AWS_ACCOUNT_ID"),
+	"role_name":  makeTestVariable(acctest.RandString(5)),
 }
 
 var connection_id string
@@ -76,6 +78,7 @@ func CreateAccConnectionAwsRoleAttachmentWithInvalidRoleName(value string) strin
 func CreateAccConnectionAwsRoleAttachmentWithoutConnectionId() string {
 	var resource string
 	resource += aws_role
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 		resource  "appdynamicscloud_connection_aws_role_attachment" "test" {
 						role_name = aws_iam_role.role.name
@@ -85,6 +88,7 @@ func CreateAccConnectionAwsRoleAttachmentWithoutConnectionId() string {
 func CreateAccConnectionAwsRoleAttachmentWithoutRoleName() string {
 	var resource string
 	resource += aws_role
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 		resource  "appdynamicscloud_connection_aws_role_attachment" "test" {
 							connection_id = appdynamicscloud_connection_aws.test.id
@@ -95,6 +99,7 @@ func CreateAccConnectionAwsRoleAttachmentWithoutRoleName() string {
 func CreateAccConnectionAwsRoleAttachmentConfig() string {
 	var resource string
 	resource += aws_role
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 		resource  "appdynamicscloud_connection_aws_role_attachment" "test" {
 			connection_id = appdynamicscloud_connection_aws.test.id
@@ -136,6 +141,7 @@ func testAccCheckAppdynamicscloudConnectionAwsRoleAttachmentDestroy(s *terraform
 	return nil
 }
 
+//lint:ignore U1000 might come in handy in the future
 func testAccCheckAppdynamicscloudConnectionAwsRoleAttachmentIdEqual(connectionAwsRoleAttachment1, connectionAwsRoleAttachment2 *cloudconnectionapi.ConnectionResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if connectionAwsRoleAttachment1.Id != connectionAwsRoleAttachment2.Id {
@@ -145,6 +151,7 @@ func testAccCheckAppdynamicscloudConnectionAwsRoleAttachmentIdEqual(connectionAw
 	}
 }
 
+//lint:ignore U1000 might come in handy in the future
 func testAccCheckAppdynamicscloudConnectionAwsRoleAttachmentIdNotEqual(connectionAwsRoleAttachment1, connectionAwsRoleAttachment2 *cloudconnectionapi.ConnectionResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if connectionAwsRoleAttachment1.Id == connectionAwsRoleAttachment2.Id {

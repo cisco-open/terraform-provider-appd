@@ -59,14 +59,16 @@ func TestAccAppdynamicscloudConnectionAzureDataSource_Basic(t *testing.T) {
 }
 func CreateAccConnectionAzureDataSourceWithoutConnectionId(rName string) string {
 	resource := CreateAccConnectionAzureConfigWithOptional(rName)
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 			data "appdynamicscloud_connection_azure" "test" {
 			}
-			`)
+	`)
 	return resource
 }
 func CreateAccConnectionAzureDataSourceConfig(rName string) string {
 	resource := CreateAccConnectionAzureConfigWithOptional(rName)
+	//lint:ignore S1039 consistency
 	resource += fmt.Sprintf(`
 	data "appdynamicscloud_connection_azure" "test" {
 		connection_id = appdynamicscloud_connection_azure.test.id

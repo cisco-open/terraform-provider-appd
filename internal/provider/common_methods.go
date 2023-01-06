@@ -34,29 +34,6 @@ func flattenCloudConnectionCommons(resp *cloudconnectionapi.ConnectionResponse, 
 	d.Set("updated_at", utcTimeToString(resp.GetUpdatedAt()))
 }
 
-func resourceCloudConnectionConfigurationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	myctx, _, apiClient := initializeCloudConnectionClient(m)
-
-	configurationId := d.Id()
-	httpResp, err := apiClient.ConfigurationsApi.DeleteConfiguration(myctx, configurationId).Execute()
-
-	if err != nil {
-		if httpResp.StatusCode == 404 {
-			return nil
-		}
-		return errRespToDiag(err, httpResp)
-	}
-
-	return nil
-}
-func flattenCloudConnectionConfigurationCommons(resp *cloudconnectionapi.ConfigurationDetail, d *schema.ResourceData) {
-	d.SetId(resp.GetId())
-	d.Set("display_name", resp.GetDisplayName())
-	d.Set("description", resp.GetDescription())
-	d.Set("created_at", utcTimeToString(resp.GetCreatedAt()))
-	d.Set("updated_at", utcTimeToString(resp.GetUpdatedAt()))
-}
-
 func flattenCloudConnectionConfigurationCommonsDetails(resp *cloudconnectionapi.ConfigurationDetail, d *schema.ResourceData, connectionType string) {
 	detailsMap := make(map[string]interface{})
 
@@ -159,7 +136,7 @@ func expandCloudConnectionConfigurationDetailsPolling(v interface{}, d *schema.R
 		unit = scheduleData["unit"].(string)
 		return *cloudconnectionapi.NewScheduleInterval(interval, unit), true
 	} else {
-		return *&cloudconnectionapi.ScheduleInterval{}, false
+		return cloudconnectionapi.ScheduleInterval{}, false
 	}
 
 }
@@ -194,7 +171,6 @@ func checkRequiredNotRequired(d *schema.ResourceDiff, type_ string) error {
 		string(cloudconnectionapi.ROLE_DELEGATION): {"account_id"},
 	}
 
-	// TODO: Use ConflictsWith
 	notRequiredAttributes := map[string][]string{
 		string(cloudconnectionapi.ACCESS_KEY):      {"account_id"},
 		string(cloudconnectionapi.ROLE_DELEGATION): {"access_key_id", "secret_access_key"},

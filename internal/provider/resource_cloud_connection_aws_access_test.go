@@ -573,8 +573,7 @@ func CreateAccConnectionAwsAccessConfigWithOptional(rName string) string {
 
 func generateStepForUpdatedRequiredAttrConnectionAwsAccess(rName string, resourceName string, connectionAwsAccess_default, connectionAwsAccess_updated *cloudconnectionapi.ConnectionResponse) []resource.TestStep {
 	testSteps := make([]resource.TestStep, 0, 1)
-	var value interface{}
-	value = searchInObject(resourceConnectionAwsAccessTest, "display_name.valid.1")
+	value := searchInObject(resourceConnectionAwsAccessTest, "display_name.valid.1")
 	testSteps = append(testSteps, resource.TestStep{
 		Config: CreateAccConnectionAwsAccessUpdateRequiredDisplayName(rName),
 		Check: resource.ComposeTestCheckFunc(
@@ -1774,7 +1773,7 @@ func generateStepForUpdatedAttrConnectionAwsAccess(rName string, resourceName st
 			),
 		})
 	}
-	
+
 	valid = searchInObject(resourceConnectionAwsAccessTest, "configuration_details.regions.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -1787,7 +1786,7 @@ func generateStepForUpdatedAttrConnectionAwsAccess(rName string, resourceName st
 			),
 		})
 	}
-	
+
 	valid = searchInObject(resourceConnectionAwsAccessTest, "configuration_details.import_tags.excluded_keys.valid").([]interface{})
 	for _, value := range valid {
 		v := fmt.Sprintf("%v", value)
@@ -1912,7 +1911,7 @@ func generateNegativeStepsConnectionAwsAccess(rName string, resourceName string)
 	}
 	testSteps = append(testSteps, resource.TestStep{
 		Config:      CreateAccConnectionAwsAccessUpdatedAttrConfigurationDetailsWithoutServices(rName),
-		ExpectError: regexp.MustCompile("At Least one services is required while updating, services cannot be updated as empty."),
+		ExpectError: regexp.MustCompile(serviceEmptyErrorMsg),
 	})
 	testSteps = append(testSteps, resource.TestStep{
 		Config: CreateAccConnectionAwsAccessConfigWithOptional(rName),
@@ -2141,6 +2140,7 @@ func testAccCheckAppdynamicscloudConnectionAwsAccessIdEqual(connectionAwsAccess1
 	}
 }
 
+//lint:ignore U1000 might come in handy in the future
 func testAccCheckAppdynamicscloudConnectionAwsAccessIdNotEqual(connectionAwsAccess1, connectionAwsAccess2 *cloudconnectionapi.ConnectionResponse) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if connectionAwsAccess1.Id == connectionAwsAccess2.Id {
