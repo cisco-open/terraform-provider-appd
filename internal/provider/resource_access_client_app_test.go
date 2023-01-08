@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -49,73 +50,205 @@ var resourceAccessClientAppTest = map[string]interface{}{
 	},
 }
 
+// BASIC - checks that creation is successful with valid
+// 		   combination required and optional values
+// REQUIRED ATTRIBUTES: display_name, description, auth_type
+// OPTIONAL ATTRIBUTES: rotate_secret, revoke_previous, revoke_now
+//
+// === CASES:
+// 		1. without required attributes
+// 		2. with only required attributes
+
+// revoke_previous depends on value of rotate_secret
+// revoke_now conflicts with revoke_previous
+//		3. with rotate_secret and revoke_previous optional attributes
+//		4. with revoke_now
+// 		5. import and compare state
+// 		6. update required attributes with valid values
+//
+// === EXPECT ERRORS:
+//		1. invalid value of revoke_previous (enum validation) [case 3]
+//		2. revoke_previous without its dependency revoke_now  [case 3]
+// 		3. revoke_previous without revoke_now: false		  [case 3]
+// 		4. rotate_now: true without revoke_previous			  [case 3]
+//		5. revoke_now with its conflicting attribute          [case 4]
+//
+// this case will test creating resource with all combinations of valid values.
+// expected errors for negative combinations and values during creation will be
+// tested in _NegativeCases method.
+
 func TestAccAppdynamicscloudAccessClientApp_Basic(t *testing.T) {
 	var accessClientApp_default applicationprincipalmanagement.ServiceClientResponse
 	var accessClientApp_updated applicationprincipalmanagement.ServiceClientResponse
 
 	resourceName := "appdynamicscloud_access_client_app.test"
-
 	rName := makeTestVariable(acctest.RandString(5))
+
+	testSteps := make([]resource.TestStep, 0, 1)
+
+	basicTests := []resource.TestStep{
+		// [case 1]
+		// without required
+		{
+			Config:      CreateAccAccessClientAppWithoutDisplayName(rName),
+			ExpectError: regexp.MustCompile(`Missing required argument`),
+		},
+		{
+			Config:      CreateAccAccessClientAppWithoutDescription(rName),
+			ExpectError: regexp.MustCompile(`Missing required argument`),
+		},
+		{
+			Config:      CreateAccAccessClientAppWithoutAuthType(rName),
+			ExpectError: regexp.MustCompile(`Missing required argument`),
+		},
+
+		// [case 2]
+		// with only required
+		{
+			Config: CreateAccAccessClientAppConfig(rName),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_default),
+
+				resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
+			),
+		},
+	}
+
+	testSteps = append(testSteps, basicTests...)
+
+	// [case 3]
+	// with optional rotate_secret
+	testSteps = append(testSteps, resource.TestStep{
+		Config: CreateAccAccessClientAppConfigWithOptionalRotate(rName, false, nil),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_updated),
+
+			resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
+			resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
+			resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
+			resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
+			resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
+
+			testAccCheckAppdynamicscloudAccessClientAppIdEqual(&accessClientApp_default, &accessClientApp_updated),
+		),
+	})
+
+	// [case 3]
+	// with optional rotate_secret and revoke_previous dependency
+	validRevokePrevious := searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid").([]interface{})
+	for _, value := range validRevokePrevious {
+		testSteps = append(testSteps, resource.TestStep{
+			Config: CreateAccAccessClientAppConfigWithOptionalRotate(rName, true, value),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_updated),
+
+				resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
+				resource.TestCheckResourceAttr(resourceName, "revoke_previous_secret_in", ""),
+				resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
+
+				testAccCheckAppdynamicscloudAccessClientAppIdEqual(&accessClientApp_default, &accessClientApp_updated),
+			),
+			ExpectNonEmptyPlan: true,
+		})
+	}
+
+	// [case 4]
+	// with revoke_now
+	testSteps = append(testSteps, []resource.TestStep{
+		{
+			Config: CreateAccAccessClientAppConfigWithOptionalRevoke(rName, true),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_updated),
+
+				resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
+				resource.TestCheckResourceAttr(resourceName, "revoke_previous_secret_in", ""),
+				resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
+
+				testAccCheckAppdynamicscloudAccessClientAppIdEqual(&accessClientApp_default, &accessClientApp_updated),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: CreateAccAccessClientAppConfigWithOptionalRevoke(rName, false),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_updated),
+
+				resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
+				resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
+				resource.TestCheckResourceAttr(resourceName, "revoke_previous_secret_in", ""),
+				resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
+
+				testAccCheckAppdynamicscloudAccessClientAppIdEqual(&accessClientApp_default, &accessClientApp_updated),
+			),
+		}}...,
+	)
+
+	// [case 5]
+	// import and compare state
+	testSteps = append(testSteps, []resource.TestStep{
+		{
+			ResourceName:      resourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			// client_secret is not sent in the read call. revoke_previous_secret_in, revoke_now, and rotate_secret are
+			// meta arguments introduced by us in terraform and not returned by the API. rotated_secret_expires_at is only
+			// fetched during rotate call, it will not be part of the GET call.
+			ImportStateVerifyIgnore: []string{"client_secret", "revoke_previous_secret_in", "revoke_now", "rotate_secret", "rotated_secret_expires_at"},
+		},
+		{
+			Config: CreateAccAccessClientAppConfig(rName),
+		},
+	}...)
+
+	// [case 6]
+	// update required attributes with valid values
+	testSteps = append(
+		testSteps,
+		generateStepForUpdatedRequiredAttrAccessClientApp(rName, resourceName, &accessClientApp_default, &accessClientApp_updated)...,
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testAccCheckAppdynamicscloudAccessClientAppDestroy,
-		Steps: append([]resource.TestStep{
-			{
-				Config:      CreateAccAccessClientAppWithoutDisplayName(rName),
-				ExpectError: regexp.MustCompile(`Missing required argument`),
-			},
-			{
-				Config:      CreateAccAccessClientAppWithoutDescription(rName),
-				ExpectError: regexp.MustCompile(`Missing required argument`),
-			},
-			{
-				Config:      CreateAccAccessClientAppWithoutAuthType(rName),
-				ExpectError: regexp.MustCompile(`Missing required argument`),
-			},
-			{
-				Config: CreateAccAccessClientAppConfig(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_default),
-
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
-					resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
-				),
-			},
-			{
-				Config: CreateAccAccessClientAppConfigWithOptional(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, &accessClientApp_updated),
-
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "display_name.valid.0"))),
-					resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "description.valid.0"))),
-					resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))),
-					resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
-					resource.TestCheckResourceAttr(resourceName, "revoke_previous_secret_in", ""),
-					resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
-
-					testAccCheckAppdynamicscloudAccessClientAppIdEqual(&accessClientApp_default, &accessClientApp_updated),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				// client_secret is not sent in the read call. revoke_previous_secret_in, revoke_now, and rotate_secret are
-				// meta arguments introduced by us in terraform and not returned by the API. rotated_secret_expires_at should
-				// work but somehow was causing the import to show drift. It is causing test to fail because of the drift
-				// hence ignored.
-				ImportStateVerifyIgnore: []string{"client_secret", "revoke_previous_secret_in", "revoke_now", "rotate_secret", "rotated_secret_expires_at"},
-			},
-			{
-				Config: CreateAccAccessClientAppConfig(rName),
-			},
-		}, generateStepForUpdatedRequiredAttrAccessClientApp(rName, resourceName, &accessClientApp_default, &accessClientApp_updated)...),
+		Steps:             testSteps,
 	})
 }
+
+// UPDATE - check that update is successful with all possible values
+// 			for optional attributes, separately and combined.
+// OPTIONAL ATTRIBUTES: rotate_secret, revoke_previous, revoke_now
+//
+// === CASES:
+// rotate_secret and revoke_previous depend on each other
+//		1. rotate_secret: present, revoke_previous: omit
+//		2. rotate_secret: omit,    revoke_previous: present
+//		3. rotate_secret: present, revoke_previous: present
+//
+// revoke_now conflicts with revoke_previous
+// above test cases will confirm that revoke_previous can
+// only be set with rotate_secret: true
+//		4. revoke_now: present, revoke_previous: absent
+//
+// === EXPECT ERRORS:
+//		1. rotate_secret: true,  revoke_previous: omit     [case 1]
+//		2. rotate_secret: omit,  revoke_previous: present  [case 2]
+//		3. rotate_secret: false, revoke_previous: present  [case 3]
+//		4. revoke_now: true,     revoke_previous: present  [case 5]
+//
+// when the attribute is present, it shall be checked with all combinations of valid values.
+// except when checking against conflictsWith attributes [case 5]
+// once the presence of both attribute throw error, it dees not matter what the values are.
 
 func TestAccAppdynamicscloudAccessClientApp_Update(t *testing.T) {
 	var accessClientApp_default applicationprincipalmanagement.ServiceClientResponse
@@ -138,6 +271,27 @@ func TestAccAppdynamicscloudAccessClientApp_Update(t *testing.T) {
 	})
 }
 
+// NEGATIVE - checks that resource cannot be created with invalid
+// 			  combination of attribute or values
+//
+// === CASES:
+// 	[BASIC]
+//		1. invalid value of revoke_previous (enum validation)
+//		2. revoke_previous without its dependency revoke_now
+// 		3. revoke_previous without revoke_now: false
+// 		4. rotate_now: true without revoke_previous
+//		5. revoke_now with its conflicting attribute
+//
+// 	[UPDATE]
+//		1. rotate_secret: omit,  revoke_previous: present [same as basic 2, ignored]
+//		2. rotate_secret: false, revoke_previous: present [same as basic 3, ignored]
+//		3. rotate_secret: true,  revoke_previous: omit 	  [same as basic 4, ignored]
+//		4. revoke_now: true,     revoke_previous: present [same as basic 5, ignored]
+//
+// The attributes here will be checked for all possible combination of invalid values
+// except when checking against conflictsWith attributes.
+// once the presence of both attribute throw error, it dees not matter what the values are.
+
 func TestAccAppdynamicscloudAccessClientApp_NegativeCases(t *testing.T) {
 	resourceName := "appdynamicscloud_access_client_app.test"
 
@@ -148,11 +302,95 @@ func TestAccAppdynamicscloudAccessClientApp_NegativeCases(t *testing.T) {
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testAccCheckAppdynamicscloudAccessClientAppDestroy,
 		Steps: append([]resource.TestStep{
+			// create with invalid display name
+			{
+				Config:      CreateAccAccessClientAppConfigDisplayNameInvalid(rName),
+				ExpectError: regexp.MustCompile("Bad Request - The provided description is invalid."),
+			},
 			{
 				Config: CreateAccAccessClientAppConfig(rName),
 			},
+			// update with invalid display name
+			{
+				Config:      CreateAccAccessClientAppConfigDisplayNameInvalid(rName),
+				ExpectError: regexp.MustCompile("Bad Request - The provided description is invalid."),
+			},
+			// revoke_previous without rotate_secret
+			{
+				Config:      CreateAccAccessClientAppConfigRotateNegative(rName, nil, false, "NOW"),
+				ExpectError: regexp.MustCompile(ERROR_ROTATE_NOT_PRESENT_OR_FALSE),
+			},
+			// revoke_previous with rotate_secret: false
+			{
+				Config:      CreateAccAccessClientAppConfigRotateNegative(rName, false, true, "NOW"),
+				ExpectError: regexp.MustCompile(ERROR_ROTATE_NOT_PRESENT_OR_FALSE),
+			},
+			// rotate_secret: true without revoke_previous
+			{
+				Config:      CreateAccAccessClientAppUpdatedAttrRotateSecretOnly(rName, true),
+				ExpectError: regexp.MustCompile(ERROR_REVOKE_TIMEOUT_NOT_PRESENT),
+			},
+			{
+				Config: CreateAccAccessClientAppConfig(rName),
+			},
+			{
+				Config:      CreateAccAccessClientAppUpdatedAttrRevokeNowConflictsWith(rName),
+				ExpectError: regexp.MustCompile("Conflicting configuration arguments"),
+			},
+			// enum validation
 		}, generateNegativeStepsAccessClientApp(rName, resourceName)...),
 	})
+}
+
+func CreateAccAccessClientAppConfigDisplayNameInvalid(rName string) string {
+	var resource string
+	parentResources := getParentAccessClientApp(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createAccessClientAppConfig(parentResources)
+	resource += fmt.Sprintf(`
+				resource  "appdynamicscloud_access_client_app" "test" {
+
+									display_name = "%v"
+
+									description = "%v"
+
+									auth_type = "%v"
+				}
+			`, acctest.RandStringFromCharSet(256, "abcdef0123456789"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
+	return resource
+}
+
+func CreateAccAccessClientAppConfigRotateNegative(rName string, rotate, includeRotate, revokeIn interface{}) string {
+	var resource string
+
+	resource = fmt.Sprintf(`
+		resource  "appdynamicscloud_access_client_app" "test" {
+
+						display_name = "%v"
+
+						description = "%v"
+
+						auth_type = "%v"
+
+						revoke_previous_secret_in = "%v"
+
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
+		revokeIn)
+
+	if includeRotate.(bool) {
+		resource += fmt.Sprintf(`
+						rotate_secret = %v
+		`, rotate)
+	}
+
+	resource += `
+	}`
+
+	return resource
 }
 
 func TestAccAppdynamicscloudAccessClientApp_MultipleCreateDelete(t *testing.T) {
@@ -165,8 +403,7 @@ func TestAccAppdynamicscloudAccessClientApp_MultipleCreateDelete(t *testing.T) {
 		CheckDestroy:      testAccCheckAppdynamicscloudAccessClientAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             CreateAccAccessClientAppMultipleConfig(rName),
-				ExpectNonEmptyPlan: true,
+				Config: CreateAccAccessClientAppMultipleConfig(rName),
 			},
 		},
 	})
@@ -183,18 +420,9 @@ func CreateAccAccessClientAppWithoutDisplayName(rName string) string {
 									description = "%v"
 
 									auth_type = "%v"
-
-									rotate_secret = "%v"
-
-									revoke_previous_secret_in = "%v"
-
-									revoke_now = "%v"
 				}
 			`, searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
 	return resource
 }
 func CreateAccAccessClientAppWithoutDescription(rName string) string {
@@ -208,18 +436,9 @@ func CreateAccAccessClientAppWithoutDescription(rName string) string {
 									display_name = "%v"
 
 									auth_type = "%v"
-
-									rotate_secret = "%v"
-
-									revoke_previous_secret_in = "%v"
-
-									revoke_now = "%v"
 				}
 			`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
 	return resource
 }
 func CreateAccAccessClientAppWithoutAuthType(rName string) string {
@@ -233,18 +452,9 @@ func CreateAccAccessClientAppWithoutAuthType(rName string) string {
 									display_name = "%v"
 
 									description = "%v"
-
-									rotate_secret = "%v"
-
-									revoke_previous_secret_in = "%v"
-
-									revoke_now = "%v"
 				}
 			`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"))
 	return resource
 }
 
@@ -268,7 +478,38 @@ func CreateAccAccessClientAppConfig(rName string) string {
 	return resource
 }
 
-func CreateAccAccessClientAppConfigWithOptional(rName string) string {
+func CreateAccAccessClientAppConfigWithOptionalRotate(rName string, rotate bool, revokeIn interface{}) string {
+	var resource string
+
+	resource = fmt.Sprintf(`
+		resource  "appdynamicscloud_access_client_app" "test" {
+
+						display_name = "%v"
+
+						description = "%v"
+
+						auth_type = "%v"
+
+						rotate_secret = %v
+
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
+		rotate)
+
+	if rotate {
+		resource += fmt.Sprintf(`
+						revoke_previous_secret_in = "%v"
+		`, revokeIn)
+	}
+
+	resource += `
+	}`
+
+	return resource
+}
+
+func CreateAccAccessClientAppConfigWithOptionalRevoke(rName string, revoke interface{}) string {
 	var resource string
 	parentResources := getParentAccessClientApp(rName)
 	parentResources = parentResources[:len(parentResources)-1]
@@ -284,18 +525,12 @@ func CreateAccAccessClientAppConfigWithOptional(rName string) string {
 
 						auth_type = "%v"
 
-						rotate_secret = "%v"
-
-						revoke_previous_secret_in = "%v"
-
-						revoke_now = "%v"
+						revoke_now = %v
 		}
 	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
 		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
 		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		revoke)
 	return resource
 }
 
@@ -304,8 +539,7 @@ func generateStepForUpdatedRequiredAttrAccessClientApp(rName string, resourceNam
 	var value interface{}
 	value = searchInObject(resourceAccessClientAppTest, "display_name.valid.1")
 	testSteps = append(testSteps, resource.TestStep{
-		Config:             CreateAccAccessClientAppUpdateRequiredDisplayName(rName),
-		ExpectNonEmptyPlan: true,
+		Config: CreateAccAccessClientAppUpdateRequiredDisplayName(rName),
 		Check: resource.ComposeTestCheckFunc(
 			testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, accessClientApp_updated),
 			resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("%v", value)),
@@ -320,7 +554,6 @@ func generateStepForUpdatedRequiredAttrAccessClientApp(rName string, resourceNam
 			resource.TestCheckResourceAttr(resourceName, "description", fmt.Sprintf("%v", value)),
 			testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
 		),
-		ExpectNonEmptyPlan: true,
 	})
 	value = searchInObject(resourceAccessClientAppTest, "auth_type.valid.1")
 	testSteps = append(testSteps, resource.TestStep{
@@ -330,7 +563,6 @@ func generateStepForUpdatedRequiredAttrAccessClientApp(rName string, resourceNam
 			resource.TestCheckResourceAttr(resourceName, "auth_type", fmt.Sprintf("%v", value)),
 			testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
 		),
-		ExpectNonEmptyPlan: true,
 	})
 	return testSteps
 }
@@ -348,19 +580,10 @@ func CreateAccAccessClientAppUpdateRequiredDisplayName(rName string) string {
 							description = "%v"
 
 							auth_type = "%v"
-
-							rotate_secret = "%v"
-
-							revoke_previous_secret_in = "%v"
-
-							revoke_now = "%v"
 			}
 		`, value,
 		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
 	return resource
 }
 func CreateAccAccessClientAppUpdateRequiredDescription(rName string) string {
@@ -377,19 +600,11 @@ func CreateAccAccessClientAppUpdateRequiredDescription(rName string) string {
 							description = "%v"
 
 							auth_type = "%v"
-
-							rotate_secret = "%v"
-
-							revoke_previous_secret_in = "%v"
-
-							revoke_now = "%v"
 			}
 		`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
 		value,
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
+
 	return resource
 }
 func CreateAccAccessClientAppUpdateRequiredAuthType(rName string) string {
@@ -406,153 +621,211 @@ func CreateAccAccessClientAppUpdateRequiredAuthType(rName string) string {
 							description = "%v"
 							
 							auth_type = "%v"
-
-							rotate_secret = "%v"
-
-							revoke_previous_secret_in = "%v"
-
-							revoke_now = "%v"
 			}
 		`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
 		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		value,
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
-	return resource
-}
-
-func CreateAccAccessClientAppUpdatedAttrRotateSecret(rName string, value interface{}) string {
-	var resource string
-	parentResources := getParentAccessClientApp(rName)
-	parentResources = parentResources[:len(parentResources)-1]
-	resource += createAccessClientAppConfig(parentResources)
-	resource += fmt.Sprintf(`
-			resource "appdynamicscloud_access_client_app" "test" {
-
-							display_name = "%v"
-
-							description = "%v"
-
-							auth_type = "%v"
-							
-							rotate_secret = false
-
-							revoke_now = "%v"
-		}
-	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
-	return resource
-}
-func CreateAccAccessClientAppUpdatedAttrRevokePreviousSecretIn(rName string, value interface{}) string {
-	var resource string
-	parentResources := getParentAccessClientApp(rName)
-	parentResources = parentResources[:len(parentResources)-1]
-	resource += createAccessClientAppConfig(parentResources)
-	resource += fmt.Sprintf(`
-			resource "appdynamicscloud_access_client_app" "test" {
-
-							display_name = "%v"
-
-							description = "%v"
-
-							auth_type = "%v"
-
-							rotate_secret = true
-							
-							revoke_previous_secret_in = "%v"
-
-							revoke_now = "%v"
-		}
-	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		value,
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
-	return resource
-}
-func CreateAccAccessClientAppUpdatedAttrRevokedAllPreviousAt(rName string, value interface{}) string {
-	var resource string
-	parentResources := getParentAccessClientApp(rName)
-	parentResources = parentResources[:len(parentResources)-1]
-	resource += createAccessClientAppConfig(parentResources)
-	resource += fmt.Sprintf(`
-			resource "appdynamicscloud_access_client_app" "test" {
-
-							display_name = "%v"
-
-							description = "%v"
-
-							auth_type = "%v"
-
-							rotate_secret = "%v"
-
-							revoke_previous_secret_in = "%v"
-							
-							revoke_now = "%v"
-		}
-	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
 		value)
+	return resource
+}
+
+func CreateAccAccessClientAppUpdatedAttrRotateSecretOnly(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentAccessClientApp(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createAccessClientAppConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_access_client_app" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							auth_type = "%v"
+							
+							rotate_secret = %v
+		}
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
+		value)
+	return resource
+}
+func CreateAccAccessClientAppUpdatedAttrRevokePreviousSecretInOnly(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentAccessClientApp(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createAccessClientAppConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_access_client_app" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							auth_type = "%v"
+							
+							revoke_previous_secret_in = "%v"
+		}
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
+		value)
+	return resource
+}
+
+func CreateAccAccessClientAppUpdatedAttrRotateWithRevokePreviousSecretIn(rName string, rotate, revokeIn interface{}) string {
+	var resource string
+	parentResources := getParentAccessClientApp(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createAccessClientAppConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_access_client_app" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							auth_type = "%v"
+							
+							rotate_secret = %v
+
+							revoke_previous_secret_in = "%v"
+		}
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
+		rotate,
+		revokeIn)
+	return resource
+}
+
+func CreateAccAccessClientAppUpdatedAttrRevokeNow(rName string, value interface{}) string {
+	var resource string
+	parentResources := getParentAccessClientApp(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createAccessClientAppConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_access_client_app" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							auth_type = "%v"
+							
+							revoke_now = %v
+		}
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
+		value)
+	return resource
+}
+
+func CreateAccAccessClientAppUpdatedAttrRevokeNowConflictsWith(rName string) string {
+	var resource string
+	parentResources := getParentAccessClientApp(rName)
+	parentResources = parentResources[:len(parentResources)-1]
+	resource += createAccessClientAppConfig(parentResources)
+	resource += fmt.Sprintf(`
+			resource "appdynamicscloud_access_client_app" "test" {
+
+							display_name = "%v"
+
+							description = "%v"
+
+							auth_type = "%v"
+							
+							rotate_secret = true
+
+							revoke_previous_secret_in = "NOW"
+
+							revoke_now = true
+		}
+	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
 	return resource
 }
 
 func generateStepForUpdatedAttrAccessClientApp(rName string, resourceName string, accessClientApp_default, accessClientApp_updated *applicationprincipalmanagement.ServiceClientResponse) []resource.TestStep {
 	testSteps := make([]resource.TestStep, 0, 1)
-	var valid []interface{}
-	valid = searchInObject(resourceAccessClientAppTest, "rotate_secret.valid").([]interface{})
-	for _, value := range valid {
+
+	// [case 1]
+	// rotate_secret: present, revoke_previous: absent,
+
+	// rotate_secret: false, revoke_previous is not required
+	testSteps = append(testSteps, resource.TestStep{
+		Config: CreateAccAccessClientAppUpdatedAttrRotateSecretOnly(rName, false),
+		Check: resource.ComposeTestCheckFunc(
+			testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, accessClientApp_updated),
+			resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
+			testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
+		),
+	})
+
+	// [case 1, error 1]
+	// rotate_secret: true, revoke_previous is required but absent
+	// handled in _NegativeCases
+
+	// [case 2, error 2]
+	// rotate_secret: absent, revoke_previous: *,
+	// handled in _NegativeCases
+	validRevokePrevious := searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid").([]interface{})
+
+	// [case 3]
+	// rotate_secret: present, revoke_previous: present
+	for _, revokePreviousValue := range validRevokePrevious {
+		// [error 3]
+		// rotate: false, revoke_previous: *
+		// revoke_previous can only be used when rotate_secret is present and is set to true
+		// handled in _NegativeCases
+
+		// rotate_secret: true, revoke_previous: *
 		testSteps = append(testSteps, resource.TestStep{
-			Config: CreateAccAccessClientAppUpdatedAttrRotateSecret(rName, value),
+			Config: CreateAccAccessClientAppUpdatedAttrRotateWithRevokePreviousSecretIn(rName, true, revokePreviousValue),
 			Check: resource.ComposeTestCheckFunc(
 				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, accessClientApp_updated),
 				resource.TestCheckResourceAttr(resourceName, "rotate_secret", "false"),
-				testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
-			),
-			ExpectNonEmptyPlan: true,
-		})
-	}
-	valid = searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid").([]interface{})
-	for _, value := range valid {
-		testSteps = append(testSteps, resource.TestStep{
-			Config: CreateAccAccessClientAppUpdatedAttrRevokePreviousSecretIn(rName, value),
-			Check: resource.ComposeTestCheckFunc(
-				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, accessClientApp_updated),
 				resource.TestCheckResourceAttr(resourceName, "revoke_previous_secret_in", ""),
 				testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
 			),
 			ExpectNonEmptyPlan: true,
 		})
 	}
-	valid = searchInObject(resourceAccessClientAppTest, "revoke_now.valid").([]interface{})
-	for _, value := range valid {
-		testSteps = append(testSteps, resource.TestStep{
-			Config: CreateAccAccessClientAppUpdatedAttrRevokedAllPreviousAt(rName, value),
+
+	// [case 4]
+	// revoke_now: present, revoke_previous: absent
+	testSteps = append(testSteps, []resource.TestStep{
+		{
+			Config: CreateAccAccessClientAppUpdatedAttrRevokeNow(rName, true),
 			Check: resource.ComposeTestCheckFunc(
 				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, accessClientApp_updated),
 				resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
 				testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
 			),
 			ExpectNonEmptyPlan: true,
-		})
-	}
+		},
+		{
+			Config: CreateAccAccessClientAppUpdatedAttrRevokeNow(rName, false),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckAppdynamicscloudAccessClientAppExists(resourceName, accessClientApp_updated),
+				resource.TestCheckResourceAttr(resourceName, "revoke_now", "false"),
+				testAccCheckAppdynamicscloudAccessClientAppIdEqual(accessClientApp_default, accessClientApp_updated),
+			),
+		},
+	}...)
+
 	return testSteps
 }
 
 func generateNegativeStepsAccessClientApp(rName string, resourceName string) []resource.TestStep {
-	//Use Update Config Function with false value
 	testSteps := make([]resource.TestStep, 0, 1)
-	//lint:ignore S1021 searchInObject returns interface, we need slice of interface
-	var invalid []interface{}
-	invalid = searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.invalid").([]interface{})
+
+	invalid := searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.invalid").([]interface{})
 	for _, value := range invalid {
 		testSteps = append(testSteps, resource.TestStep{
-			Config:      CreateAccAccessClientAppUpdatedAttrRevokePreviousSecretIn(rName, value),
+			Config:      CreateAccAccessClientAppUpdatedAttrRevokePreviousSecretInOnly(rName, value),
 			ExpectError: regexp.MustCompile(expectErrorMap["StringInSlice"]),
 		})
 	}
@@ -577,19 +850,10 @@ func CreateAccAccessClientAppMultipleConfig(rName string) string {
 							description = "%v"
 
 							auth_type = "%v"
-
-							rotate_secret = "%v"
-
-							revoke_previous_secret_in = "%v"
-
-							revoke_now = "%v"
 			}
 		`, i, val,
 			searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-			searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-			searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-			searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-			searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+			searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
 	}
 	return resource
 }
@@ -667,19 +931,10 @@ func accessClientAppBlock(rName string) string {
 
 						auth_type = "%v"
 
-						rotate_secret = "%v"
-
-						revoke_previous_secret_in = "%v"
-
-						revoke_now = "%v"
-
 		}
 	`, searchInObject(resourceAccessClientAppTest, "display_name.valid.0"),
 		searchInObject(resourceAccessClientAppTest, "description.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "rotate_secret.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_previous_secret_in.valid.0"),
-		searchInObject(resourceAccessClientAppTest, "revoke_now.valid.0"))
+		searchInObject(resourceAccessClientAppTest, "auth_type.valid.0"))
 }
 
 // To eliminate duplicate resource block from slice of resource blocks
@@ -758,6 +1013,28 @@ func TestAccessClientApp_CustomDiff_RotateSecretValidCombinations(t *testing.T) 
 		}
 
 	}
+}
+
+func TestAccessClientApp_NonExistentRead(t *testing.T) {
+	m := sharedClient()
+
+	d := resourceAccessClientApp().TestResourceData()
+	d.SetId("foo")
+
+	diag := resourceAccessClientApp().ReadContext(context.Background(), d, m)
+
+	if diag == nil {
+		t.Fatalf("expected read to fail, but it did not")
+	}
+
+	d.SetId("srv_3ZSmQDb7bsfxaI_invalid")
+	diag = resourceAccessClientApp().ReadContext(context.Background(), d, m)
+
+	if diag != nil {
+		t.Fatalf("expected read to succeed, but it did not")
+	}
+
+	revokeSecret(d, m)
 }
 
 func TestAccessClientApp_GetRotationRequest(t *testing.T) {

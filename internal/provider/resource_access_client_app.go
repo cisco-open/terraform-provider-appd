@@ -13,6 +13,11 @@ import (
 
 var maxRetries = 1
 
+const (
+	ERROR_REVOKE_TIMEOUT_NOT_PRESENT  = "revoke_previous_secret_in must be set with rotate_secret"
+	ERROR_ROTATE_NOT_PRESENT_OR_FALSE = "revoke_previous_secret_in can only be used when rotate_secret is set to true"
+)
+
 func resourceAccessClientApp() *schema.Resource {
 
 	return &schema.Resource{
@@ -283,8 +288,7 @@ func getRotationRequest(revokePreviousIn string) applicationprincipalmanagement.
 }
 
 func customDiffRotateSecretCheck(rotateSecretIsPresent, rotateSecretVal, revokeTimeoutIsPresent bool) error {
-	errString := "revoke_previous_secret_in can only be used when rotate_secret is set to true"
-	err := fmt.Errorf(errString)
+	err := fmt.Errorf(ERROR_ROTATE_NOT_PRESENT_OR_FALSE)
 
 	if !rotateSecretIsPresent && revokeTimeoutIsPresent {
 		return err
@@ -295,7 +299,7 @@ func customDiffRotateSecretCheck(rotateSecretIsPresent, rotateSecretVal, revokeT
 	}
 
 	if rotateSecretIsPresent && !revokeTimeoutIsPresent {
-		return fmt.Errorf("revoke_previous_secret_in must be set with rotate_secret")
+		return fmt.Errorf(ERROR_REVOKE_TIMEOUT_NOT_PRESENT)
 	}
 
 	return nil
