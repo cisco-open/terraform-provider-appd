@@ -1015,7 +1015,7 @@ func TestAccessClientApp_CustomDiff_RotateSecretValidCombinations(t *testing.T) 
 	}
 }
 
-func TestAccessClientApp_NonExistentRead(t *testing.T) {
+func TestAccessClientApp_InvalidCRUD(t *testing.T) {
 	m := sharedClient()
 
 	d := resourceAccessClientApp().TestResourceData()
@@ -1034,7 +1034,25 @@ func TestAccessClientApp_NonExistentRead(t *testing.T) {
 		t.Fatalf("expected read to succeed, but it did not")
 	}
 
-	revokeSecret(d, m)
+	diag = resourceAccessClientApp().DeleteContext(context.Background(), d, m)
+	if diag == nil {
+		t.Fatalf("expected delete to fail, but it did not")
+
+	}
+
+	d.Set("revoke_now", true)
+	diag = revokeSecret(d, m)
+	if diag == nil {
+		t.Fatalf("expected revoke to fail, but it did not")
+	}
+
+	d.Set("rotate_secret", true)
+	d.Set("revoke_previous_secret_in", "invalidValue")
+	diag = rotateSecret(d, m)
+
+	if diag == nil {
+		t.Fatalf("expected rotate to fail, but it did not")
+	}
 }
 
 func TestAccessClientApp_GetRotationRequest(t *testing.T) {
