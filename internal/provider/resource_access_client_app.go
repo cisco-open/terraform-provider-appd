@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
 
 	applicationprincipalmanagement "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/applicationprincipalmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -12,6 +13,11 @@ import (
 )
 
 var maxRetries = 1
+
+const (
+	ERROR_REVOKE_TIMEOUT_NOT_PRESENT  = "revoke_previous_secret_in must be set with rotate_secret"
+	ERROR_ROTATE_NOT_PRESENT_OR_FALSE = "revoke_previous_secret_in can only be used when rotate_secret is set to true"
+)
 
 func resourceAccessClientApp() *schema.Resource {
 
@@ -125,6 +131,7 @@ func flattenAccessClientApp(d *schema.ResourceData, resp *applicationprincipalma
 }
 
 func resourceAccessClientAppImport(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	log.Printf("calling log")
 	myctx, _, apiClient := initializeApplicationPrincipalManagementClient(m)
 
 	clientId := d.Id()
@@ -168,8 +175,15 @@ func resourceAccessClientAppCreate(ctx context.Context, d *schema.ResourceData, 
 	d.SetId(resp.GetId())
 	d.Set("client_secret", resp.GetClientSecret())
 
-	rotateSecret(d, m)
-	revokeSecret(d, m)
+	diagErr := rotateSecret(d, m)
+	if err != nil {
+		return diagErr
+	}
+
+	diagErr = revokeSecret(d, m)
+	if diagErr != nil {
+		return diagErr
+	}
 
 	return resourceAccessClientAppRead(ctx, d, m)
 }
@@ -211,9 +225,15 @@ func resourceAccessClientAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		flattenAccessClientApp(d, r)
 	}
 
-	rotateSecret(d, m)
+	err := rotateSecret(d, m)
+	if err != nil {
+		return err
+	}
 
-	revokeSecret(d, m)
+	err = revokeSecret(d, m)
+	if err != nil {
+		return err
+	}
 
 	// after rotate, get updatedAt, hasRotated etc..
 	return resourceAccessClientAppRead(ctx, d, m)
@@ -232,7 +252,7 @@ func resourceAccessClientAppDelete(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func rotateSecret(d *schema.ResourceData, m interface{}) {
+func rotateSecret(d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	myctx, _, apiClient := initializeApplicationPrincipalManagementClient(m)
 
 	val, ok := d.GetOk("rotate_secret")
@@ -241,7 +261,7 @@ func rotateSecret(d *schema.ResourceData, m interface{}) {
 
 		resp, httpResp, err := apiClient.ServicesApi.RotateServiceClientSecret(myctx, d.Id()).RotationRequest(rotationRequest).Execute()
 		if err != nil {
-			errRespToDiag(err, httpResp)
+			return errRespToDiag(err, httpResp)
 		}
 
 		d.Set("client_secret", resp.GetClientSecret())
@@ -249,9 +269,11 @@ func rotateSecret(d *schema.ResourceData, m interface{}) {
 		d.Set("rotate_secret", false)
 		d.Set("revoke_previous_secret_in", "")
 	}
+
+	return nil
 }
 
-func revokeSecret(d *schema.ResourceData, m interface{}) {
+func revokeSecret(d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	myctx, _, apiClient := initializeApplicationPrincipalManagementClient(m)
 
 	val, ok := d.GetOk("revoke_now")
@@ -260,11 +282,13 @@ func revokeSecret(d *schema.ResourceData, m interface{}) {
 		// thus no need to flatten here
 		_, httpResp, err := apiClient.ServicesApi.RevokeServiceClientSecret(myctx, d.Id()).Execute()
 		if err != nil {
-			errRespToDiag(err, httpResp)
+			return errRespToDiag(err, httpResp)
 		}
 
 		d.Set("revoke_now", false)
 	}
+
+	return nil
 }
 
 func getRotationRequest(revokePreviousIn string) applicationprincipalmanagement.RotationRequest {
@@ -283,8 +307,7 @@ func getRotationRequest(revokePreviousIn string) applicationprincipalmanagement.
 }
 
 func customDiffRotateSecretCheck(rotateSecretIsPresent, rotateSecretVal, revokeTimeoutIsPresent bool) error {
-	errString := "revoke_previous_secret_in can only be used when rotate_secret is set to true"
-	err := fmt.Errorf(errString)
+	err := fmt.Errorf(ERROR_ROTATE_NOT_PRESENT_OR_FALSE)
 
 	if !rotateSecretIsPresent && revokeTimeoutIsPresent {
 		return err
@@ -295,7 +318,7 @@ func customDiffRotateSecretCheck(rotateSecretIsPresent, rotateSecretVal, revokeT
 	}
 
 	if rotateSecretIsPresent && !revokeTimeoutIsPresent {
-		return fmt.Errorf("revoke_previous_secret_in must be set with rotate_secret")
+		return fmt.Errorf(ERROR_REVOKE_TIMEOUT_NOT_PRESENT)
 	}
 
 	return nil
