@@ -184,9 +184,11 @@ func lookupTenantId(tenantName string) (string, error) {
 
 	if v, ok := tenantIdLookup["tenantId"]; ok {
 		return v.(string), nil
+	} else if v, ok := tenantIdLookup["message"]; ok {
+		return "", fmt.Errorf("%s, is tenant_name valid?", v.(string))
 	}
 
-	return "", fmt.Errorf("%s, is tenant_name valid?", tenantIdLookup["message"].(string))
+	return "", fmt.Errorf("failed to lookup tenantId for tenant: %s", tenantName)
 }
 
 type config struct {
