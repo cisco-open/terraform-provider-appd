@@ -1,0 +1,24 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+{{ .Description | trimspace }}
+
+~> **Note:** Service Principals cannot be managed by the credentials of another service principal. you need to sign in through your user credentials by login mode browser or headless in order to use this resource.
+
+{{ if .HasExample -}}
+## Example Usage
+{{ tffile "examples/resources/appdynamicscloud_access_client_app/resource.tf" }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+Import is supported using the following syntax:
+{{codefile "shell" "examples/resources/appdynamicscloud_access_client_app/import.sh"}}
+{{- end }}

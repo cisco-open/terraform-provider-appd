@@ -1,0 +1,1 @@
+terraform import appdynamicscloud_connection_aws_role_attachment.example <connection-id>
