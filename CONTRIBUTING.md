@@ -13,8 +13,7 @@ License
 -------
 
 By contributing your code, you agree to license your contribution under
-the terms of the MPL-2.0:
-https://github.com/AniketK-Crest/terraform-provider-appdynamicscloud/blob/main/LICENSE
+the terms of the [Mozilla Public License 2.0](https://github.com/AniketK-Crest/terraform-provider-appdynamicscloud/blob/main/LICENSE)
 
 All files are released with the MPL 2.0 license.
 
