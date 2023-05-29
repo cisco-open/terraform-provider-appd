@@ -17,7 +17,7 @@ the terms of the [Mozilla Public License 2.0](https://github.com/AniketK-Crest/t
 
 All files are released with the MPL 2.0 license.
 
-If you are adding a new file it should include a copyright header::
+If you are adding a new source file, it should include a copyright header:
 
     /**
      * Copyright 2023 AppDynamics, Inc.
