@@ -20,7 +20,7 @@ All files are released with the MPL-2.0 license.
 If you are adding a new source file, it should include a copyright header:
 
     /**
-     * Copyright 2023 AppDynamics, Inc.
+     * Copyright 2023 Cisco Systems, Inc.
      *
      * Licensed under the MPL License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
