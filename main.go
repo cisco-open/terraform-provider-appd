@@ -17,6 +17,7 @@ package main
 import (
 	"flag"
 
+	// TODO: Update url
 	"github.com/aniketk-crest/terraform-provider-appdynamics/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
@@ -43,6 +44,7 @@ func main() {
 	// 	},
 	// }
 
+	// TODO: Update url
 	// if debugMode {
 	// 	err := plugin.Debug(context.Background(), "github.com/aniketk-crest/terraform-provider-appdynamics", opts)
 	// 	if err != nil {
