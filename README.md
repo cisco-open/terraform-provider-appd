@@ -21,7 +21,7 @@ If you are building the provider, follow the instructions to [install it as a pl
 
 ex.
 ```terraform
-#configure provider with your Cisco Appdynamics credentials.
+#configure provider with your Cisco AppDynamics credentials.
 terraform {
   required_providers {
     appdynamicscloud = {
