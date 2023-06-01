@@ -19,8 +19,7 @@ import (
 	"fmt"
 	"log"
 
-	// TODO: Update url
-	applicationprincipalmanagement "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/applicationprincipalmanagement"
+	applicationprincipalmanagement "github.com/cisco-open/appd-cloud-go-client/apis/v1/applicationprincipalmanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

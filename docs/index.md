@@ -65,7 +65,7 @@ Communities provide a place for members or participants to search for informatio
   * idea exchanges where you can suggest ways to improve products and vote for ideas that other community members have posted
   * knowledge base - a collection of articles that captures and organizes helpful community information. 
 
-* [Issues or Enhancement requests: ](https://TODO)  
+* Issues or Enhancement requests:
 Issues and Enhancement requests can be submitted on GitHub repo's issues tab of the repository. Please search if the existing issues resolves your problem before posting a new issue.
 
 
