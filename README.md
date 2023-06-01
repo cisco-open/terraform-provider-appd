@@ -4,24 +4,26 @@ The Terraform AppDynamics Cloud provider is a plugin that allows Terraform to ma
 
 ## Requirements
 
--	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
--	[Go](https://golang.org/doc/install) >= 1.18
+- [Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
+- [Go](https://golang.org/doc/install) >= 1.18
 
+## Building the Provider
 
-## Building The Provider ##
 1. Clone the repository
 1. Enter the repository directory
-1. Build the provider using the Go `install` command: 
-```sh
-$ make build
+1. Build the provider using the Go `install` command:
+
+```shell
+make build
 ```
 
-## Using the provider
-If you are building the provider, follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory, run `terraform init` to initialize it.
+## Using the Provider
 
-ex.
+If you are building the provider, follow the instructions to [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it:
+
 ```terraform
-#configure provider with your Cisco AppDynamics credentials.
+# Configure provider with your Cisco AppDynamics credentials.
+
 terraform {
   required_providers {
     appdynamicscloud = {
@@ -37,9 +39,7 @@ provider "appdynamicscloud" {
   client_id     = "xxxxxxxxxxxxxxxxx"
   client_secret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 }
-
 ```
-
 
 ## Developing the Provider
 
@@ -51,14 +51,14 @@ To generate or update documentation, run `go generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+*Note:* Acceptance tests create real resources, and often cost money to run:
 
-```sh
-$ make testacc
+```shell
+make testacc
 ```
 
-To remove dangling resources created during acceptance test, run `make sweep`.
+To remove dangling resources created during acceptance tests, run `make sweep`:
 
-```sh
-$ make sweep
+```shell
+make sweep
 ```
