@@ -1,18 +1,18 @@
-module github.com/aniketk-crest/terraform-provider-appdynamics
+module github.com/cisco-open/appd-cloud-terraform
 
 go 1.18
 
 require (
-	// github.com/aniketk-crest/appdynamicscloud-go-client v0.0.0-00010101000000-000000000000
+	// github.com/cisco-open/appd-cloud-go-client v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.1
 	golang.org/x/oauth2 v0.3.0
 )
 
-// replace github.com/aniketk-crest/appdynamicscloud-go-client => ../appdynamicscloud-go-client
+// replace github.com/cisco-open/appd-cloud-go-client => ../appd-cloud-go-client
 
 require (
 	github.com/Jeffail/gabs/v2 v2.6.1
-	github.com/aniketk-crest/appdynamicscloud-go-client v1.0.2-0.20221228043829-8b9388d75433
+	github.com/cisco-open/appd-cloud-go-client v1.0.2-0.20221228043829-8b9388d75433
 	github.com/chromedp/cdproto v0.0.0-20221126224343-3a0787b8dd28
 	github.com/chromedp/chromedp v0.8.6
 	github.com/hashicorp/terraform-plugin-docs v0.13.0

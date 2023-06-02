@@ -22,8 +22,8 @@ import (
 	"net/http"
 	"strings"
 
-	client "github.com/aniketk-crest/appdynamicscloud-go-client"
-	"github.com/aniketk-crest/terraform-provider-appdynamics/internal/auth"
+	client "github.com/cisco-open/appd-cloud-go-client"
+	"github.com/cisco-open/appd-cloud-terraform/internal/auth"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

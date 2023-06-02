@@ -25,8 +25,8 @@ import (
 	"os"
 	"time"
 
-	client "github.com/aniketk-crest/appdynamicscloud-go-client"
-	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
+	client "github.com/cisco-open/appd-cloud-go-client"
+	cloudconnectionapi "github.com/cisco-open/appd-cloud-go-client/apis/v1/cloudconnections"
 )
 
 var key = []byte("testtesttesttest")

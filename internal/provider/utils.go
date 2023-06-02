@@ -22,10 +22,10 @@ import (
 	"net/http"
 	"time"
 
-	client "github.com/aniketk-crest/appdynamicscloud-go-client"
-	cloudappprincipalmgmtapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/applicationprincipalmanagement"
-	cloudconnectionapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudconnections"
-	cloudqueryapi "github.com/aniketk-crest/appdynamicscloud-go-client/apis/v1/cloudquery"
+	client "github.com/cisco-open/appd-cloud-go-client"
+	cloudappprincipalmgmtapi "github.com/cisco-open/appd-cloud-go-client/apis/v1/applicationprincipalmanagement"
+	cloudconnectionapi "github.com/cisco-open/appd-cloud-go-client/apis/v1/cloudconnections"
+	cloudqueryapi "github.com/cisco-open/appd-cloud-go-client/apis/v1/cloudquery"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
