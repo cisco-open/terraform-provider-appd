@@ -17,7 +17,7 @@ package main
 import (
 	"flag"
 
-	"github.com/cisco-open/appd-cloud-terraform/internal/provider"
+	"github.com/cisco-open/terraform-provider-appd/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
@@ -44,7 +44,7 @@ func main() {
 	// }
 
 	// if debugMode {
-	// 	err := plugin.Debug(context.Background(), "github.com/cisco-open/appd-cloud-terraform", opts)
+	// 	err := plugin.Debug(context.Background(), "github.com/cisco-open/terraform-provider-appd", opts)
 	// 	if err != nil {
 	// 		log.Fatal(err.Error())
 	// 	}

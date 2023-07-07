@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	client "github.com/cisco-open/appd-cloud-go-client"
-	"github.com/cisco-open/appd-cloud-terraform/internal/auth"
+	"github.com/cisco-open/terraform-provider-appd/internal/auth"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
