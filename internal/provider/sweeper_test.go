@@ -23,7 +23,7 @@ import (
 
 	client "github.com/cisco-open/appd-cloud-go-client"
 	cloudconnectionapi "github.com/cisco-open/appd-cloud-go-client/apis/v1/cloudconnections"
-	"github.com/cisco-open/appd-cloud-terraform/internal/auth"
+	"github.com/cisco-open/terraform-provider-appd/internal/auth"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 

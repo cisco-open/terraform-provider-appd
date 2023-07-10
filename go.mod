@@ -1,4 +1,4 @@
-module github.com/cisco-open/appd-cloud-terraform
+module github.com/cisco-open/terraform-provider-appd
 
 go 1.18
 

@@ -1,4 +1,4 @@
-# appd-cloud-terraform
+# terraform-provider-appd
 
 The AppDynamics Cloud Terraform provider is a plugin that allows Terraform to manage resources on AppDynamics Cloud Platform.
 
