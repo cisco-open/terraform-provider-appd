@@ -93,6 +93,7 @@ jobs:
       timeout-minutes: 10
       env:
         TF_ACC: "1"
+        APPDYNAMICS_TENANT_NAME: ${{ env.APPDYNAMICS_TENANT_NAME }}        
 
       run: |
         go test -v -cover ./internal/provider/ -timeout=50m
