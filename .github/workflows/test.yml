@@ -53,6 +53,7 @@ jobs:
   test:
     name: Matrix Test
     needs: build
+    environment: dev
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -94,5 +95,5 @@ jobs:
         TF_ACC: "1"
 
       run: |
-        go test -v -cover ./internal/provider/
+        go test -v -cover ./internal/provider/ -timeout=50m
         
