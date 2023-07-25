@@ -28,7 +28,7 @@ resource "appdynamicscloud_connection_aws" "example1" {
         enabled       = false
         excluded_keys = []
       }
-      tag_filter = "tags(project) = 'cloudcollectors' && tags(jira) IN ['XTNSBL','ACE'] && !(tags(region) IN ['US','IN']) && HAS tags(monitorEnabled) && !(HAS tags(restrictedUse)"
+      tag_filter = "tags(project) = 'cloudcollectors' && tags(jira) IN ['XTNSBL','ACE'] && !(tags(region) IN ['US','IN']) && HAS tags(monitorEnabled) && !(HAS tags(restrictedUse))"
       polling {
         interval = 5
         unit     = "minute"
